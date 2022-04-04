@@ -4,6 +4,7 @@
 
 #include "mkm_config.h"
 #include "mkm_csv.h"
+#include "mkm_error.h"
 #include "mkm_output.h"
 #include "mkm_output_text.h"
 

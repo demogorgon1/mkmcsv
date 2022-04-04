@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <malloc.h>
 #include <stdint.h>
+#include <string.h>
 
 #define MKM_TRUE	1
 #define MKM_FALSE	0

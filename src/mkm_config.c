@@ -1,9 +1,13 @@
 #if defined(WIN32)
 	#include <windows.h>
 	#include <Shlobj.h>
+#else
+	#include <sys/stat.h>
+	#include <errno.h>
 #endif
 
 #include <malloc.h>
+#include <string.h>
 
 #include "mkm_config.h"
 #include "mkm_csv.h"
