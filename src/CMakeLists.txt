@@ -11,6 +11,8 @@ add_executable(mkmcsv
 	mkm_error.h
 	mkm_output.c
 	mkm_output.h
+	mkm_output_text.c
+	mkm_output_text.h
 	mkm_price.c
 	mkm_price.h)
 	
