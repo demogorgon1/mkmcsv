@@ -3,6 +3,8 @@
 
 #include "mkm_base.h"
 
+struct _mkm_csv;
+
 typedef enum _mkm_output_column_type
 {
 	MKM_OUTPUT_COLUMN_TYPE_STRING,
