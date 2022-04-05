@@ -4,6 +4,9 @@
 #else
 	#include <sys/stat.h>
 	#include <errno.h>
+	#include <unistd.h>
+	#include <sys/types.h>
+	#include <pwd.h>
 #endif
 
 #include <malloc.h>
@@ -164,6 +167,8 @@ void
 mkm_config_make_dir(
 	const char*			path)
 {
+	printf("make dir: %s\n", path);
+
 	#if defined(WIN32)
 		BOOL result = CreateDirectoryA(path, NULL);
 
@@ -204,8 +209,9 @@ mkm_config_get_default_cache_path(
 		}
 
 	#else
-		home_path[0] = '~';
-		home_path[1] = '\0';
+		struct passwd* pw = getpwuid(getuid());
+		strncpy(home_path, pw->pw_dir, sizeof(home_path));
+		/* FIXME: bounds check */
 	#endif
 
 	char mkm_csv_dir[1024];
