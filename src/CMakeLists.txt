@@ -22,6 +22,8 @@ add_executable(mkmcsv
 	
 target_link_libraries(mkmcsv sfc::sfc)
 
+install(TARGETS mkmcsv RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+
 if(MKM_TEST)
 	add_test(mkmcsv-test mkmcsv test)
 endif()
