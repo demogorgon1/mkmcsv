@@ -3,16 +3,21 @@
 #include <sfc/sfc.h>
 
 #include "mkm_config.h"
-#include "mkm_csv.h"
 #include "mkm_error.h"
-#include "mkm_output.h"
-#include "mkm_output_text.h"
+#include "mkm_data.h"
+
+#include "test.h"
 
 int
 main(
 	int			argc, 
 	char**		argv)
 {
+	#if defined(MKM_TEST)
+		if(argc > 1 && strcmp(argv[1], "test") == 0)
+			return test(argc, argv);
+	#endif
+
 	mkm_config config;
 	mkm_config_init(&config, argc, argv);
 
@@ -28,32 +33,13 @@ main(
 			mkm_error("Failed to load cache: %s (%d)", config.cache_file, result);
 	}
 
-	mkm_output* output = mkm_output_create(&config, cache);
+	mkm_data* data = mkm_data_create(&config, cache);
 
-	switch(config.input_type)
-	{
-	case MKM_CONFIG_INPUT_TYPE_CSV:
-		for(const mkm_config_input_file* input_file = config.input_files; input_file != NULL; input_file = input_file->next)
-		{
-			mkm_csv* csv = mkm_csv_create_from_file(input_file->path);
-			mkm_output_process_csv(output, csv);
-			mkm_csv_destroy(csv);
-		}
-		break;
-	default:
-		assert(0);
-	}
+	config.input_callback(data);
 
-	switch(config.output_type)
-	{
-	case MKM_CONFIG_OUTPUT_TYPE_TEXT:
-		mkm_output_text(output);
-		break;
-	default:
-		assert(0);
-	}
+	config.output_callback(data);
 
-	mkm_output_destroy(output);
+	mkm_data_destroy(data);
 
 	{
 		sfc_result result = sfc_cache_save(cache, config.cache_file);
