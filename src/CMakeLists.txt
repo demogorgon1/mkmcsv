@@ -1,9 +1,5 @@
 cmake_minimum_required (VERSION 3.19)
 
-add_compile_definitions(
-	MKM_TEST
-)
-
 add_executable(mkmcsv
 	main.c
 	mkm_base.h
@@ -26,4 +22,6 @@ add_executable(mkmcsv
 	
 target_link_libraries(mkmcsv sfc::sfc)
 
-#add_test(mkmcsv <command>)
+if(MKM_TEST)
+	add_test(mkmcsv-test mkmcsv test)
+endif()

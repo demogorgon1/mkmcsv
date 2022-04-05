@@ -1,6 +1,7 @@
 #ifdef MKM_TEST
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include <sfc/sfc.h>
 
