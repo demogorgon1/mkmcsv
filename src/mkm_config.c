@@ -121,9 +121,13 @@ mkm_config_find_column_info(
 static void
 mkm_config_parse_columns(
 	mkm_config*						config,
-	char*							string)
+	const char*						string)
 {
-	char* p = string;
+	char temp[1024];
+	/* FIXME: check bounds */
+	strncpy(temp, string, sizeof(temp));
+
+	char* p = temp;
 	mkm_config_output_column* last_column = NULL;
 
 	for(;;)
@@ -235,7 +239,7 @@ mkm_config_init(
 
 	for(int i = 1; i < argc; i++)
 	{
-		char* arg = argv[i];
+		const char* arg = argv[i];
 
 		if(arg[0] == '-')
 		{
