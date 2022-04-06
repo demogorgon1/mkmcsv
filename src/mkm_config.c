@@ -16,6 +16,7 @@
 #include "mkm_csv.h"
 #include "mkm_error.h"
 #include "mkm_input_csv.h"
+#include "mkm_input_purchases.h"
 #include "mkm_output_text.h"
 
 static mkm_config_column_info g_mkm_config_column_info[] =
@@ -129,8 +130,7 @@ mkm_config_parse_columns(
 	const char*						string)
 {
 	char temp[1024];
-	/* FIXME: check bounds */
-	strncpy(temp, string, sizeof(temp));
+	mkm_strcpy(temp, string, sizeof(temp));
 
 	char* p = temp;
 	mkm_config_column* last_column = NULL;
@@ -189,23 +189,25 @@ mkm_config_get_default_cache_path(
 	char home_path[1024];
 
 	#if defined(WIN32)
-		PWSTR w_buffer = NULL;
-		HRESULT hr = SHGetKnownFolderPath((REFKNOWNFOLDERID)&FOLDERID_RoamingAppData, 0, NULL, &w_buffer);
-		MKM_ERROR_CHECK(hr == S_OK, "SHGetKnownFolderPath() failed: %u", hr);
-
-		BOOL used_default_char = FALSE;
-		int result = WideCharToMultiByte(CP_ACP, 0, (LPCWCH)w_buffer, -1, (LPSTR)home_path, sizeof(home_path) - 1, NULL, &used_default_char);
-
-		if (w_buffer != NULL)
-			CoTaskMemFree(w_buffer);
-
-		MKM_ERROR_CHECK(used_default_char == FALSE && result > 0, "WideCharToMultiByte() failed: %u", GetLastError());
-
-		size_t len = strlen(home_path);
-		for(size_t i = 0; i < len; i++)
 		{
-			if(home_path[i] == '\\')
-				home_path[i] = '/';
+			PWSTR w_buffer = NULL;
+			HRESULT hr = SHGetKnownFolderPath((REFKNOWNFOLDERID)&FOLDERID_RoamingAppData, 0, NULL, &w_buffer);
+			MKM_ERROR_CHECK(hr == S_OK, "SHGetKnownFolderPath() failed: %u", hr);
+
+			BOOL used_default_char = FALSE;
+			int result = WideCharToMultiByte(CP_ACP, 0, (LPCWCH)w_buffer, -1, (LPSTR)home_path, sizeof(home_path) - 1, NULL, &used_default_char);
+
+			if (w_buffer != NULL)
+				CoTaskMemFree(w_buffer);
+
+			MKM_ERROR_CHECK(used_default_char == FALSE && result > 0, "WideCharToMultiByte() failed: %u", GetLastError());
+
+			size_t len = strlen(home_path);
+			for (size_t i = 0; i < len; i++)
+			{
+				if (home_path[i] == '\\')
+					home_path[i] = '/';
+			}
 		}
 
 	#else
@@ -261,8 +263,7 @@ mkm_config_init(
 			{
 				i++;
 				MKM_ERROR_CHECK(i < argc, "Expected path after --cache.");
-				/* FIXME: proper bounds check */
-				strncpy(config->cache_file, argv[i], sizeof(config->cache_file));
+				mkm_strcpy(config->cache_file, argv[i], sizeof(config->cache_file));
 			}
 			else if(strcmp(arg, "--input") == 0)
 			{
@@ -271,6 +272,8 @@ mkm_config_init(
 				char* input_type = argv[i];
 				if(strcmp(input_type, "csv") == 0)
 					config->input_callback = mkm_input_csv;
+				else if (strcmp(input_type, "purchases") == 0)
+					config->input_callback = mkm_input_purchases;
 				else
 					mkm_error("Invalid input type: %s", input_type);
 			}

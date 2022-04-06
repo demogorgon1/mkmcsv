@@ -14,8 +14,7 @@ mkm_data_set_column_string(
 {
 	data->type = MKM_DATA_COLUMN_TYPE_STRING;
 
-	/* FIXME: warning if truncating string */
-	strncpy(data->string_value, string_value, sizeof(data->string_value));
+	mkm_strcpy(data->string_value, string_value, sizeof(data->string_value));
 }
 
 static void

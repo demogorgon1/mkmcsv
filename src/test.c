@@ -110,6 +110,8 @@ sfc_result
 test_http_context_update(
 	void*				http_context)
 {
+	MKM_UNUSED(http_context);
+
 	return SFC_RESULT_OK;
 }
 
@@ -240,6 +242,9 @@ test(
 	int		argc,
 	char**	argv)
 {
+	MKM_UNUSED(argc);
+	MKM_UNUSED(argv);
+
 	test_csv_in_text_out();
 
 	return 0;

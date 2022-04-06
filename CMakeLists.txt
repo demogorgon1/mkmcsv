@@ -23,11 +23,20 @@ include(GNUInstallDirs)
 
 FetchContent_Declare(sfc
   GIT_REPOSITORY https://github.com/demogorgon1/scryfallcache.git
-  GIT_TAG        ea95f2efa8d75388e77093aebb1a2946cc447d1e # 0.1.6
+  GIT_TAG        17010f03a2c5e07947cf54c9a82db10c7b12cb8c # 0.1.7
 )
 
 FetchContent_MakeAvailable(sfc)
 
 # --------------------------------------------------------------------
+
+if (MSVC)
+    # warning level 4 and all warnings as errors
+    add_compile_options(/W4 /WX)
+	add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
+else()
+    # lots of warnings and all warnings as errors
+    add_compile_options(-Wall -Wextra -pedantic -Werror)
+endif()
 
 add_subdirectory(src)

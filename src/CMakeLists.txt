@@ -1,24 +1,14 @@
 cmake_minimum_required (VERSION 3.19)
 
-add_executable(mkmcsv
-	main.c
-	mkm_base.h
-	mkm_config.c
-	mkm_config.h
-	mkm_csv.c
-	mkm_csv.h
-	mkm_data.c
-	mkm_data.h
-	mkm_error.c
-	mkm_error.h
-	mkm_input_csv.c
-	mkm_input_csv.h
-	mkm_output_text.c
-	mkm_output_text.h
-	mkm_price.c
-	mkm_price.h
-	test.c
-	test.h)
+file(GLOB C_FILES "*.c")
+file(GLOB H_FILES "*.h")
+
+if(NOT MKM_TEST)
+	list(FILTER C_FILES EXCLUDE REGEX ".*test\\.c$")
+	list(FILTER H_FILES EXCLUDE REGEX ".*test\\.h$")
+endif()
+
+add_executable(mkmcsv ${C_FILES} ${H_FILES})
 	
 target_link_libraries(mkmcsv sfc::sfc)
 
