@@ -1,5 +1,6 @@
 cmake_minimum_required (VERSION 3.19)
 
+
 file(GLOB C_FILES "*.c")
 file(GLOB H_FILES "*.h")
 
