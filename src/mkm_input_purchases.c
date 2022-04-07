@@ -249,8 +249,11 @@ mkm_input_purchases(
 				mkm_data_row_array_add(&data_row_array, row);
 			}
 
-			/* Adjust shipping costs and trustee fees */
-			mkm_input_purchases_adjust_shipping_costs_and_trustee_fees(data->config, &data_row_array, purchase);
+			if(mkm_data_row_array_count_non_nulls(&data_row_array) > 0)
+			{
+				/* Adjust shipping costs and trustee fees */
+				mkm_input_purchases_adjust_shipping_costs_and_trustee_fees(data->config, &data_row_array, purchase);
+			}
 
 			mkm_data_row_array_uninit(&data_row_array);
 		}

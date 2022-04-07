@@ -281,3 +281,18 @@ mkm_data_row_array_add(
 	assert(row_array->rows != NULL);
 	row_array->rows[row_array->num_rows - 1] = row;
 }
+
+size_t			
+mkm_data_row_array_count_non_nulls(
+	mkm_data_row_array*			row_array)
+{
+	size_t count = 0;
+
+	for(size_t i = 0; i < row_array->num_rows; i++)
+	{
+		if(row_array->rows[i] != NULL)
+			count++;
+	}
+
+	return count;
+}

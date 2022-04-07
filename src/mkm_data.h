@@ -88,4 +88,7 @@ void			mkm_data_row_array_add(
 					mkm_data_row_array*				row_array,
 					mkm_data_row*					row);
 
+size_t			mkm_data_row_array_count_non_nulls(
+					mkm_data_row_array*				row_array);
+
 #endif /* __MKM_DATA_H__ */
