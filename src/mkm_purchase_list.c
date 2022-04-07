@@ -193,7 +193,12 @@ mkm_purchase_list_create_from_file(
 				assert(tokenize.num_tokens > 0);
 				const char* first_token = tokenize.tokens[0];
 
-				if(strcmp(first_token, "csv") == 0)
+				if(strcmp(first_token, "abort") == 0)
+				{
+					/* Ignore the rest of the file */
+					break;
+				}
+				else if(strcmp(first_token, "csv") == 0)
 				{
 					MKM_ERROR_CHECK(tokenize.num_tokens == 2, "Syntax error: cvs <path template>");
 					mkm_strcpy(purchase_list->csv_template, tokenize.tokens[1], sizeof(purchase_list->csv_template));

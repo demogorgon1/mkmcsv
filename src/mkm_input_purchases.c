@@ -138,7 +138,7 @@ mkm_input_purchases_adjust_shipping_costs_and_trustee_fees(
 	for(size_t i = 0; i < data_row_array->num_rows; i++)
 	{
 		mkm_data_row* row = data_row_array->rows[i];
-		if(row->removed)
+		if(row == NULL || row->removed)
 			continue;
 
 		const mkm_data_column* price_column = &row->columns[price_column_index];
@@ -159,7 +159,7 @@ mkm_input_purchases_adjust_shipping_costs_and_trustee_fees(
 	for (size_t i = 0; i < data_row_array->num_rows; i++)
 	{
 		mkm_data_row* row = data_row_array->rows[i];
-		if(row->removed)
+		if(row == NULL || row->removed)
 			continue;
 
 		mkm_data_column* price_column = &row->columns[price_column_index];
@@ -214,6 +214,8 @@ mkm_input_purchases(
 
 		for(const mkm_purchase* purchase = purchase_list->head; purchase != NULL; purchase = purchase->next)
 		{
+			printf("%u...\n", purchase->id);
+
 			mkm_data_row_array data_row_array;
 			mkm_data_row_array_init(&data_row_array, purchase->csv);
 

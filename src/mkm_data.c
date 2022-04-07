@@ -84,29 +84,38 @@ mkm_data_process_csv(
 		sfc_query* query = sfc_cache_query_cardmarket_id(data->cache, csv_row->columns[MKM_CSV_COLUMN_ID_PRODUCT]);
 		assert(query != NULL);
 		MKM_ERROR_CHECK(sfc_query_wait(query, 10 * 1000) == SFC_RESULT_OK, "Failed waiting for query to finish.");
-		MKM_ERROR_CHECK(query->result == SFC_RESULT_OK, "Query failed.");
-		MKM_ERROR_CHECK(query->results->count == 1, "Got more results than expected.");
-		sfc_card* card = query->results->cards[0];
 
-		/* Allocate row and insert in linked list */
-		mkm_data_row* row = mkm_data_create_row(data);
-
-		/* If caller requested an array of rows, add it here */
-		if(out_row_array != NULL)
+		if(query->result == SFC_RESULT_NOT_FOUND)
 		{
-			assert(row_index < out_row_array->num_rows);
-			out_row_array->rows[row_index] = row;
+			/* We can't really know if it's an invalid cardmarket id or that it wasn't a card. It could
+			   be something like a binder or sealed product. Just ignore it. */
 		}
-
-		/* Generate row */
-		size_t column_index = 0;
-
-		for(const mkm_config_column* column = data->config->columns; column != NULL; column = column->next)
+		else
 		{
-			assert(column_index < data->config->num_columns);
-			mkm_data_column* data_column = &row->columns[column_index++];
+			MKM_ERROR_CHECK(query->result == SFC_RESULT_OK, "Query failed.");
+			MKM_ERROR_CHECK(query->results->count == 1, "Got more results than expected.");
+			sfc_card* card = query->results->cards[0];
 
-			mkm_data_process_column(csv_row, card, column, purchase_info, data_column);
+			/* Allocate row and insert in linked list */
+			mkm_data_row* row = mkm_data_create_row(data);
+
+			/* If caller requested an array of rows, add it here */
+			if (out_row_array != NULL)
+			{
+				assert(row_index < out_row_array->num_rows);
+				out_row_array->rows[row_index] = row;
+			}
+
+			/* Generate row */
+			size_t column_index = 0;
+
+			for (const mkm_config_column* column = data->config->columns; column != NULL; column = column->next)
+			{
+				assert(column_index < data->config->num_columns);
+				mkm_data_column* data_column = &row->columns[column_index++];
+
+				mkm_data_process_column(csv_row, card, column, purchase_info, data_column);
+			}
 		}
 
 		/* Clean up query */
