@@ -10,7 +10,9 @@ mkm_input_csv(
 	for (const mkm_config_input_file* input_file = data->config->input_files; input_file != NULL; input_file = input_file->next)
 	{
 		mkm_csv* csv = mkm_csv_create_from_file(input_file->path);
-		mkm_data_process_csv(data, csv);
+		MKM_ERROR_CHECK(csv != NULL, "Failed to load CSV: %s", input_file->path);
+
+		mkm_data_process_csv(data, csv, NULL, NULL);
 		mkm_csv_destroy(csv);
 	}
 }

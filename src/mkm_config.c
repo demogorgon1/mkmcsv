@@ -28,6 +28,10 @@ static mkm_config_column_info g_mkm_config_column_info[] =
 	{ "is_foil", MKM_CONFIG_COLUMN_TYPE_CSV, 0, MKM_CSV_COLUMN_IS_FOIL												},
 	{ "is_signed", MKM_CONFIG_COLUMN_TYPE_CSV, 0, MKM_CSV_COLUMN_IS_SIGNED											},
 	{ "is_altered", MKM_CONFIG_COLUMN_TYPE_CSV, 0, MKM_CSV_COLUMN_IS_ALTERED										},
+	{ "purchase_id", MKM_CONFIG_COLUMN_TYPE_PURCHASE_ID, 0, 0														},
+	{ "shipping_cost", MKM_CONFIG_COLUMN_TYPE_PURCHASE_SHIPPING_COST, 0, 0											},
+	{ "purchase_date", MKM_CONFIG_COLUMN_TYPE_PURCHASE_DATE, 0, 0													},
+	{ "trustee_fee", MKM_CONFIG_COLUMN_TYPE_PURCHASE_TRUSTEE_FEE, 0, 0												},
 	{ "tcgplayer_id", MKM_CONFIG_COLUMN_TYPE_SFC_TCGPLAYER_ID, 0, 0													},
 	{ "collector_number", MKM_CONFIG_COLUMN_TYPE_SFC_COLLECTOR_NUMBER, 0, 0											},
 	{ "color_is_red", MKM_CONFIG_COLUMN_TYPE_SFC_COLOR_IS_RED, 0, 0													},
@@ -145,18 +149,22 @@ mkm_config_parse_columns(
 
 		p[token_length] = '\0';
 
-		mkm_config_column* column = MKM_NEW(mkm_config_column);
+		if(mkm_config_get_column_index_by_name(config, p) == UINT32_MAX)
+		{
+			/* Only add column if not already defined */
+			mkm_config_column* column = MKM_NEW(mkm_config_column);
 
-		column->info = mkm_config_find_column_info(p);
+			column->info = mkm_config_find_column_info(p);
 
-		if(last_column != NULL)
-			last_column->next = column;
-		else 
-			config->columns = column;
+			if (last_column != NULL)
+				last_column->next = column;
+			else
+				config->columns = column;
 
-		last_column = column;
-		
-		config->num_columns++;
+			last_column = column;
+
+			config->num_columns++;
+		}
 
 		if (end_of_line)
 			break;
@@ -273,7 +281,12 @@ mkm_config_init(
 				if(strcmp(input_type, "csv") == 0)
 					config->input_callback = mkm_input_csv;
 				else if (strcmp(input_type, "purchases") == 0)
+				{
 					config->input_callback = mkm_input_purchases;
+
+					/* Add required columns for processing purchases */
+					mkm_config_parse_columns(config, "name+version+set+condition+price+shipping_cost+trustee_fee");
+				}
 				else
 					mkm_error("Invalid input type: %s", input_type);
 			}
@@ -311,7 +324,7 @@ mkm_config_init(
 	if(config->columns == NULL)
 	{
 		/* Add default columns */
-		mkm_config_parse_columns(config, "name+version+set+price+condition");
+		mkm_config_parse_columns(config, "name+version+set+condition+price");
 	}
 
 	if(config->cache_file[0] == '\0')
@@ -346,4 +359,25 @@ mkm_config_uninit(
 			column = next;
 		}
 	}
+}
+
+uint32_t	
+mkm_config_get_column_index_by_name(
+	const mkm_config*	config,
+	const char*			name)
+{
+	uint32_t index = 0;
+
+	for(const mkm_config_column* column = config->columns; column != NULL; column = column->next)
+	{
+		if(strcmp(column->info->name, name) == 0)
+		{
+			assert(index < config->num_columns);
+			return index;
+		}
+
+		index++;
+	}
+
+	return UINT32_MAX;
 }

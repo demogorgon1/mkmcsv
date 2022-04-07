@@ -11,6 +11,10 @@ typedef enum _mkm_config_column_type
 {
 	MKM_CONFIG_COLUMN_TYPE_UNDEFINED,
 	MKM_CONFIG_COLUMN_TYPE_CSV,
+	MKM_CONFIG_COLUMN_TYPE_PURCHASE_ID,
+	MKM_CONFIG_COLUMN_TYPE_PURCHASE_DATE,
+	MKM_CONFIG_COLUMN_TYPE_PURCHASE_SHIPPING_COST,
+	MKM_CONFIG_COLUMN_TYPE_PURCHASE_TRUSTEE_FEE,
 	MKM_CONFIG_COLUMN_TYPE_SFC_TCGPLAYER_ID,
 	MKM_CONFIG_COLUMN_TYPE_SFC_COLLECTOR_NUMBER,
 	MKM_CONFIG_COLUMN_TYPE_SFC_COLOR_IS_RED,
@@ -76,5 +80,9 @@ void		mkm_config_init(
 
 void		mkm_config_uninit(
 				mkm_config*				config);
+
+uint32_t	mkm_config_get_column_index_by_name(
+				const mkm_config*		config,
+				const char*				name);
 
 #endif /* __MKMCSV_CONFIG_H__ */

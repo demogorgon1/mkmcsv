@@ -81,7 +81,8 @@ mkm_csv_create_from_file(
 	const char*			path)
 {
 	FILE* f = fopen(path, "r");
-	MKM_ERROR_CHECK(f != NULL, "Failed to open file: %s", path);
+	if(f == NULL)
+		return NULL;
 
 	mkm_csv_line header_line;
 
@@ -134,6 +135,8 @@ mkm_csv_create_from_file(
 			csv->rows = row;
 
 		last_row = row;
+
+		csv->num_rows++;
 
 		/* Convert columns */
 		for(size_t i = 0; i < line.num_columns; i++)

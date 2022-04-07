@@ -28,6 +28,7 @@ typedef struct _mkm_csv_row
 
 typedef struct _mkm_csv
 {
+	size_t					num_rows;
 	mkm_csv_row*			rows;
 } mkm_csv;
 

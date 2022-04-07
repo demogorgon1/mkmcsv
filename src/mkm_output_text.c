@@ -105,6 +105,9 @@ mkm_output_text(
 	/* Output rows */
 	for (const mkm_data_row* row = data->first_row; row != NULL; row = row->next)
 	{
+		if(row->removed)
+			continue;
+
 		struct column_info* column = columns;
 		for (size_t i = 0; i < data->config->num_columns; i++)
 		{

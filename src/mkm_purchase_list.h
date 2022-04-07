@@ -5,6 +5,8 @@
 
 typedef struct _mkm_purchase_list
 {
+	char					csv_template[256];
+
 	struct _mkm_purchase*	head;
 	struct _mkm_purchase*	tail;
 } mkm_purchase_list;
