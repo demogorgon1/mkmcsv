@@ -44,7 +44,7 @@ static mkm_config_column_info g_mkm_config_column_info[] =
 	{ "color_identity_is_green", MKM_CONFIG_COLUMN_TYPE_SFC_COLOR_IDENTITY_IS_GREEN, 0, 0							},
 	{ "color_identity_is_black", MKM_CONFIG_COLUMN_TYPE_SFC_COLOR_IDENTITY_IS_BLACK, 0, 0							},
 	{ "color_identity_is_white", MKM_CONFIG_COLUMN_TYPE_SFC_COLOR_IDENTITY_IS_WHITE, 0, 0							},
-	{ "name", MKM_CONFIG_COLUMN_TYPE_SFC_NAME, 0, 0																	},
+	{ "name", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_NAME, 0											},
 	{ "set", MKM_CONFIG_COLUMN_TYPE_SFC_SET, 0, 0																	},
 	{ "version", MKM_CONFIG_COLUMN_TYPE_SFC_VERSION, 0, 0															},
 	{ "released_at", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_RELEASED_AT, 0								},
@@ -284,7 +284,7 @@ mkm_config_init(
 					config->input_callback = mkm_input_purchases;
 
 					/* Add required columns for processing purchases */
-					mkm_config_parse_columns(config, "name+version+set+condition+price+shipping_cost+trustee_fee");
+					mkm_config_parse_columns(config, "name+set+collector_number+version+condition+price+shipping_cost+trustee_fee");
 				}
 				else
 					mkm_error("Invalid input type: %s", input_type);

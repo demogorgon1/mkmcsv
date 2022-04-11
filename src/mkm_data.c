@@ -105,8 +105,6 @@ mkm_data_process_csv(
 			MKM_ERROR_CHECK(query->results->count == 1, "Got more results than expected.");
 			sfc_card* card = query->results->cards[0];
 
-			sfc_card_debug_print(card);
-
 			/* Allocate row and insert in linked list */
 			mkm_data_row* row = mkm_data_create_row(data);
 
@@ -197,7 +195,7 @@ mkm_data_process_column(
 		break;
 
 	case MKM_CONFIG_COLUMN_TYPE_SFC_COLLECTOR_NUMBER:
-		mkm_data_set_column_uint32(data, card->data.collector_number);
+		mkm_data_set_column_uint32(data, card->key.collector_number);
 		break;
 
 	case MKM_CONFIG_COLUMN_TYPE_SFC_COLOR_IS_RED:
@@ -238,10 +236,6 @@ mkm_data_process_column(
 
 	case MKM_CONFIG_COLUMN_TYPE_SFC_COLOR_IDENTITY_IS_WHITE:
 		mkm_data_set_column_bool(data, card->data.color_identity & SFC_CARD_COLOR_WHITE);
-		break;
-
-	case MKM_CONFIG_COLUMN_TYPE_SFC_NAME:
-		mkm_data_set_column_string(data, card->key.name);
 		break;
 
 	case MKM_CONFIG_COLUMN_TYPE_SFC_SET:

@@ -151,7 +151,7 @@ test_http_get(
 	else if (strcmp(url, "https://api.scryfall.com/cards/cardmarket/101") == 0)
 	{
 		req->result = test_strdup_no_null_term(context->app,
-			"{\"object\":\"card\", \"name\":\"test101\", \"set\":\"test\", \"collector_number\":\"1\"}",
+			"{\"object\":\"card\", \"name\":\"test101\", \"set\":\"test\", \"collector_number\":\"2\"}",
 			&req->size);
 	}
 	else
@@ -233,8 +233,8 @@ test_csv_in_text_out()
 	test_compare_file("tmp_mkm_test_1.txt", 
 		"name   |price|condition|\n"
 		"-------|-----|---------|\n"
-		"test100| 1000|        1|\n"
-		"test101| 1100|        1|\n");
+		"test100|10.00|        1|\n"
+		"test101|11.00|        1|\n");
 }
 
 int	

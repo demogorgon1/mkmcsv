@@ -11,7 +11,7 @@
 
 typedef struct _mkm_input_purchases_key_column_indices
 {
-	uint32_t	name;
+	uint32_t	collector_number;
 	uint32_t	version;
 	uint32_t	set;
 	uint32_t	condition;
@@ -23,7 +23,6 @@ mkm_input_purchases_find_row_in_array(
 	mkm_data_row_array*								data_row_array,
 	const mkm_purchase_modification*				modification)
 {
-	/* FIXME: do some kind of fuzzy search so not all info needs to be supplied by the modification */
 	for(size_t i = 0; i < data_row_array->num_rows; i++)
 	{
 		mkm_data_row* data_row = data_row_array->rows[i];
@@ -31,17 +30,17 @@ mkm_input_purchases_find_row_in_array(
 		if(data_row == NULL || data_row->removed)
 			continue;
 
-		mkm_data_column* name_column = &data_row->columns[key_column_indices->name];
+		mkm_data_column* collector_number_column = &data_row->columns[key_column_indices->collector_number];
 		mkm_data_column* version_column = &data_row->columns[key_column_indices->version];
 		mkm_data_column* set_column = &data_row->columns[key_column_indices->set];
 		mkm_data_column* condition_column = &data_row->columns[key_column_indices->condition];
 
-		assert(name_column->type == MKM_DATA_COLUMN_TYPE_STRING);
+		assert(collector_number_column->type == MKM_DATA_COLUMN_TYPE_UINT32);
 		assert(version_column->type == MKM_DATA_COLUMN_TYPE_UINT32);
 		assert(set_column->type == MKM_DATA_COLUMN_TYPE_STRING);
 		assert(condition_column->type == MKM_DATA_COLUMN_TYPE_UINT32);
 		
-		if(strcmp(modification->card_key.name, name_column->string_value) == 0 &&
+		if(modification->card_key.collector_number == collector_number_column->uint32_value &&
 			strcmp(modification->card_key.set, set_column->string_value) == 0 &&
 			modification->card_key.version == version_column->uint32_value &&
 			modification->condition == condition_column->uint32_value)
@@ -260,11 +259,11 @@ mkm_input_purchases(
 	struct _mkm_data*								data)
 {
 	mkm_input_purchases_key_column_indices key_column_indices;
-	key_column_indices.name = mkm_config_get_column_index_by_name(data->config, "name");
+	key_column_indices.collector_number = mkm_config_get_column_index_by_name(data->config, "collector_number");
 	key_column_indices.version = mkm_config_get_column_index_by_name(data->config, "version");
 	key_column_indices.set = mkm_config_get_column_index_by_name(data->config, "set");
 	key_column_indices.condition = mkm_config_get_column_index_by_name(data->config, "condition");
-	MKM_ERROR_CHECK(key_column_indices.name != UINT32_MAX, "'name' column is required for processing purchases.");
+	MKM_ERROR_CHECK(key_column_indices.collector_number != UINT32_MAX, "'collector_number' column is required for processing purchases.");
 	MKM_ERROR_CHECK(key_column_indices.version != UINT32_MAX, "'version' column is required for processing purchases.");
 	MKM_ERROR_CHECK(key_column_indices.set != UINT32_MAX, "'set' column is required for processing purchases.");
 	MKM_ERROR_CHECK(key_column_indices.condition != UINT32_MAX, "'condition' column is required for processing purchases.");
@@ -303,8 +302,8 @@ mkm_input_purchases(
 			for (const mkm_purchase_modification* modification = purchase->removals.head; modification != NULL; modification = modification->next)
 			{
 				mkm_data_row* row = mkm_input_purchases_find_row_in_array(&key_column_indices, &data_row_array, modification);
-				MKM_ERROR_CHECK(row != NULL, "Row specified by removal operation not found: %s (%s, version %u)",
-					modification->card_key.name, modification->card_key.set, modification->card_key.version);
+				MKM_ERROR_CHECK(row != NULL, "Row specified by removal operation not found: %s %u (version %u)",
+					modification->card_key.set, modification->card_key.collector_number, modification->card_key.version);
 
 				row->removed = MKM_TRUE;
 			}

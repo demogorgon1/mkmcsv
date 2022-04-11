@@ -46,28 +46,24 @@ static void
 mkm_purchase_list_make_card_key(
 	sfc_card_key*		card_key,
 	const char*			set,
-	char*				name)
+	const char*			collector_number_string)
 {
-	card_key->version = 0;
-
 	size_t set_len = strlen(set);
 	MKM_ERROR_CHECK(set_len < SFC_MAX_SET, "Set name too long: %s", set);
 	memcpy(card_key->set, set, set_len + 1);
 
-	size_t name_len = strlen(name);
-	if(name_len >= 3 && 
-		name[name_len - 3] == ' ' && name[name_len - 2] == 'V' &&
-		name[name_len - 1] >= '1' && name[name_len - 1] <= '9')
+	size_t collector_number_string_len = strlen(collector_number_string);
+	if(collector_number_string_len > 0 &&
+		isalpha(collector_number_string[collector_number_string_len - 1]))
 	{
-		/* Name includes version, strip it off */
-		card_key->version = (uint8_t)(name[name_len - 1] - '0');
-
-		name_len -= 3;
-		name[name_len] = '\0';
+		card_key->version = collector_number_string[collector_number_string_len - 1] - 'a' + 1;
+	}
+	else
+	{
+		card_key->version = 0;
 	}
 
-	MKM_ERROR_CHECK(name_len < SFC_MAX_NAME, "Card name too long: %s", name);
-	memcpy(card_key->name, name, name_len + 1);
+	card_key->collector_number = (uint16_t)strtoul(collector_number_string, NULL, 10);
 }
 
 static mkm_bool
@@ -255,31 +251,31 @@ mkm_purchase_list_create_from_file(
 				}
 				else if(strcmp(first_token, "remove") == 0)
 				{
-					MKM_ERROR_CHECK(tokenize.num_tokens == 4, "Syntax error: remove <set> <condition> <name>");
+					MKM_ERROR_CHECK(tokenize.num_tokens == 4, "Syntax error: remove <set> <collector number> <condition>");
 					MKM_ERROR_CHECK(purchase != NULL, "'remove' without purchase.");
 
 					sfc_card_key key;
-					mkm_purchase_list_make_card_key(&key, tokenize.tokens[1], tokenize.tokens[3]);
+					mkm_purchase_list_make_card_key(&key, tokenize.tokens[1], tokenize.tokens[2]);
 
 					/* FIXME: support supplying price */
 					mkm_purchase_remove(
 						purchase, 
 						&key, 
-						mkm_purchase_list_parse_condition_string(tokenize.tokens[2]),
+						mkm_purchase_list_parse_condition_string(tokenize.tokens[3]),
 						UINT32_MAX);
 				}
 				else if(strcmp(first_token, "add") == 0)
 				{
-					MKM_ERROR_CHECK(tokenize.num_tokens == 5, "Syntax error: add <set> <condition> <name> <price>");
+					MKM_ERROR_CHECK(tokenize.num_tokens == 5, "Syntax error: add <set> <collect number> <condition> <price>");
 					MKM_ERROR_CHECK(purchase != NULL, "'add' without purchase.");
 
 					sfc_card_key key;
-					mkm_purchase_list_make_card_key(&key, tokenize.tokens[1], tokenize.tokens[3]);
+					mkm_purchase_list_make_card_key(&key, tokenize.tokens[1], tokenize.tokens[2]);
 
 					mkm_purchase_add(
 						purchase, 
 						&key, 
-						mkm_purchase_list_parse_condition_string(tokenize.tokens[2]),
+						mkm_purchase_list_parse_condition_string(tokenize.tokens[3]),
 						mkm_price_parse(tokenize.tokens[4]));
 				}
 				else
