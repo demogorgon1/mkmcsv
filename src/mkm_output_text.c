@@ -15,8 +15,17 @@ mkm_output_text_render_cell(
 	switch(column->type)
 	{
 	case MKM_DATA_COLUMN_TYPE_BOOL:		snprintf(buffer, buffer_size, "%s", column->bool_value ? "true" : "false"); break;
-	case MKM_DATA_COLUMN_TYPE_INTEGER:	snprintf(buffer, buffer_size, "%u", column->integer_value); break;
+	case MKM_DATA_COLUMN_TYPE_UINT32:	snprintf(buffer, buffer_size, "%u", column->uint32_value); break;
 	case MKM_DATA_COLUMN_TYPE_STRING:	snprintf(buffer, buffer_size, "%s", column->string_value); break;
+
+	case MKM_DATA_COLUMN_TYPE_PRICE:	
+		{
+			int32_t minor = column->price_value < 0 ? (-column->price_value % 100) : (column->price_value % 100);
+			int32_t major = column->price_value / 100;
+			snprintf(buffer, buffer_size, "%d.%02d", major, minor);
+		}
+		break;
+
 	default:
 		assert(0);
 	}

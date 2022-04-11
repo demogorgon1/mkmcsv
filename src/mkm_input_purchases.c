@@ -28,7 +28,7 @@ mkm_input_purchases_find_row_in_array(
 	{
 		mkm_data_row* data_row = data_row_array->rows[i];
 
-		if(data_row->removed)
+		if(data_row == NULL || data_row->removed)
 			continue;
 
 		mkm_data_column* name_column = &data_row->columns[key_column_indices->name];
@@ -37,14 +37,14 @@ mkm_input_purchases_find_row_in_array(
 		mkm_data_column* condition_column = &data_row->columns[key_column_indices->condition];
 
 		assert(name_column->type == MKM_DATA_COLUMN_TYPE_STRING);
-		assert(version_column->type == MKM_DATA_COLUMN_TYPE_INTEGER);
+		assert(version_column->type == MKM_DATA_COLUMN_TYPE_UINT32);
 		assert(set_column->type == MKM_DATA_COLUMN_TYPE_STRING);
-		assert(condition_column->type == MKM_DATA_COLUMN_TYPE_INTEGER);
+		assert(condition_column->type == MKM_DATA_COLUMN_TYPE_UINT32);
 		
 		if(strcmp(modification->card_key.name, name_column->string_value) == 0 &&
 			strcmp(modification->card_key.set, set_column->string_value) == 0 &&
-			modification->card_key.version == version_column->integer_value &&
-			modification->condition == condition_column->integer_value)
+			modification->card_key.version == version_column->uint32_value &&
+			modification->condition == condition_column->uint32_value)
 		{
 			return data_row;
 		}
@@ -117,6 +117,67 @@ mkm_input_purchases_add_row(
 }
 
 static void
+mkm_input_purchases_adjust_overall_price(
+	const mkm_config*								config,
+	mkm_data_row_array*								data_row_array,
+	const mkm_purchase*								purchase)
+{
+	/* Fetch column index of price */
+	uint32_t price_column_index = mkm_config_get_column_index_by_name(config, "price");
+	MKM_ERROR_CHECK(price_column_index != UINT32_MAX, "'price' column is required for processing purchases.");
+
+	/* Calculate total price sum */
+	int32_t price_sum = 0;
+	mkm_data_row* highest_price_row = NULL;
+	int32_t highest_price = 0;
+
+	for (size_t i = 0; i < data_row_array->num_rows; i++)
+	{
+		mkm_data_row* row = data_row_array->rows[i];
+		if (row == NULL || row->removed)
+			continue;
+
+		const mkm_data_column* price_column = &row->columns[price_column_index];
+		assert(price_column->type == MKM_DATA_COLUMN_TYPE_PRICE);
+		price_sum += price_column->price_value;
+
+		if (highest_price_row == NULL || highest_price < price_column->price_value)
+		{
+			highest_price_row = row;
+			highest_price = price_column->price_value;
+		}
+	}
+
+	/* Adjust prices based on the part of total price sum */
+	int32_t sum_of_adjustments = 0;
+
+	for (size_t i = 0; i < data_row_array->num_rows; i++)
+	{
+		mkm_data_row* row = data_row_array->rows[i];
+		if (row == NULL || row->removed)
+			continue;
+
+		mkm_data_column* price_column = &row->columns[price_column_index];
+
+		int32_t adjustment = (purchase->overall_price_adjustment * price_column->price_value) / price_sum;
+
+		price_column->price_value += adjustment;
+
+		sum_of_adjustments += adjustment;
+	}
+
+	/* Add any rounding loss to the most expensive row */
+	int32_t rounding_error = purchase->overall_price_adjustment - sum_of_adjustments;
+
+	if (rounding_error != 0)
+	{
+		assert(highest_price_row != NULL);
+
+		highest_price_row->columns[price_column_index].price_value += rounding_error;
+	}
+}
+
+static void
 mkm_input_purchases_adjust_shipping_costs_and_trustee_fees(
 	const mkm_config*								config,
 	mkm_data_row_array*								data_row_array,
@@ -131,9 +192,9 @@ mkm_input_purchases_adjust_shipping_costs_and_trustee_fees(
 	MKM_ERROR_CHECK(trustee_fee_column_index != UINT32_MAX, "'trustee_fee' column is required for processing purchases.");
 
 	/* Calculate total price sum */
-	uint32_t price_sum = 0;
+	int32_t price_sum = 0;
 	mkm_data_row* highest_price_row = NULL;
-	uint32_t highest_price = 0;
+	int32_t highest_price = 0;
 
 	for(size_t i = 0; i < data_row_array->num_rows; i++)
 	{
@@ -142,19 +203,19 @@ mkm_input_purchases_adjust_shipping_costs_and_trustee_fees(
 			continue;
 
 		const mkm_data_column* price_column = &row->columns[price_column_index];
-		assert(price_column->type == MKM_DATA_COLUMN_TYPE_INTEGER);
-		price_sum += price_column->integer_value;
+		assert(price_column->type == MKM_DATA_COLUMN_TYPE_PRICE);
+		price_sum += price_column->price_value;
 
-		if(highest_price_row == NULL || highest_price < price_column->integer_value)
+		if(highest_price_row == NULL || highest_price < price_column->price_value)
 		{
 			highest_price_row = row;
-			highest_price = price_column->integer_value;
+			highest_price = price_column->price_value;
 		}
 	}
 
 	/* Adjust shipping costs and trustee fees based on the part of total price sum */
-	uint32_t sum_of_shipping_costs = 0;
-	uint32_t sum_of_trustee_fees = 0;
+	int32_t sum_of_shipping_costs = 0;
+	int32_t sum_of_trustee_fees = 0;
 
 	for (size_t i = 0; i < data_row_array->num_rows; i++)
 	{
@@ -166,29 +227,29 @@ mkm_input_purchases_adjust_shipping_costs_and_trustee_fees(
 		mkm_data_column* shipping_cost_column = &row->columns[shipping_cost_column_index];
 		mkm_data_column* trustee_fee_column = &row->columns[trustee_fee_column_index];
 
-		assert(shipping_cost_column->type == MKM_DATA_COLUMN_TYPE_INTEGER);
-		assert(trustee_fee_column->type == MKM_DATA_COLUMN_TYPE_INTEGER);
+		assert(shipping_cost_column->type == MKM_DATA_COLUMN_TYPE_PRICE);
+		assert(trustee_fee_column->type == MKM_DATA_COLUMN_TYPE_PRICE);
 
-		shipping_cost_column->integer_value = (purchase->shipping_cost * price_column->integer_value) / price_sum;
-		trustee_fee_column->integer_value = (purchase->trustee_fee * price_column->integer_value) / price_sum;
+		shipping_cost_column->price_value = (purchase->shipping_cost * price_column->price_value) / price_sum;
+		trustee_fee_column->price_value = (purchase->trustee_fee * price_column->price_value) / price_sum;
 
-		sum_of_shipping_costs += shipping_cost_column->integer_value;
-		sum_of_trustee_fees += trustee_fee_column->integer_value;
+		sum_of_shipping_costs += shipping_cost_column->price_value;
+		sum_of_trustee_fees += trustee_fee_column->price_value;
 	}
 
 	/* Add any rounding loss to the most expensive row */
 	assert(sum_of_shipping_costs <= purchase->shipping_cost);
 	assert(sum_of_trustee_fees <= purchase->trustee_fee);
 
-	uint32_t shipping_cost_rounding_error = purchase->shipping_cost - sum_of_shipping_costs;
-	uint32_t trustee_fee_rounding_error = purchase->trustee_fee - sum_of_trustee_fees;
+	int32_t shipping_cost_rounding_error = purchase->shipping_cost - sum_of_shipping_costs;
+	int32_t trustee_fee_rounding_error = purchase->trustee_fee - sum_of_trustee_fees;
 
 	if(shipping_cost_rounding_error > 0 || trustee_fee_rounding_error > 0)
 	{
 		assert(highest_price_row != NULL);
 
-		highest_price_row->columns[shipping_cost_column_index].integer_value += shipping_cost_rounding_error;
-		highest_price_row->columns[trustee_fee_column_index].integer_value += trustee_fee_rounding_error;
+		highest_price_row->columns[shipping_cost_column_index].price_value += shipping_cost_rounding_error;
+		highest_price_row->columns[trustee_fee_column_index].price_value += trustee_fee_rounding_error;
 	}
 }
 
@@ -258,6 +319,12 @@ mkm_input_purchases(
 
 			if(mkm_data_row_array_count_non_nulls(&data_row_array) > 0)
 			{
+				if(purchase->overall_price_adjustment != 0)
+				{
+					/* Adjust overall price of shipment */
+					mkm_input_purchases_adjust_overall_price(data->config, &data_row_array, purchase);
+				}
+	
 				/* Adjust shipping costs and trustee fees */
 				mkm_input_purchases_adjust_shipping_costs_and_trustee_fees(data->config, &data_row_array, purchase);
 			}

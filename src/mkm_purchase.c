@@ -6,7 +6,7 @@ mkm_purchase_modification_list_add(
 	mkm_purchase_modification_list*	list,
 	const sfc_card_key*				card_key,
 	uint32_t						condition,
-	uint32_t						price)
+	int32_t							price)
 {
 	mkm_purchase_modification* modification = MKM_NEW(mkm_purchase_modification);
 
@@ -61,7 +61,7 @@ mkm_purchase_add(
 	mkm_purchase*					purchase,
 	const sfc_card_key*				card_key,
 	uint32_t						condition,
-	uint32_t						price)
+	int32_t							price)
 {
 	mkm_purchase_modification_list_add(&purchase->additions, card_key, condition, price);
 }
@@ -71,7 +71,7 @@ mkm_purchase_remove(
 	mkm_purchase*					purchase,
 	const sfc_card_key*				card_key,
 	uint32_t						condition,
-	uint32_t						price)
+	int32_t							price)
 {
 	mkm_purchase_modification_list_add(&purchase->removals, card_key, condition, price);
 }

@@ -10,7 +10,8 @@ struct _mkm_csv_row;
 typedef enum _mkm_data_column_type
 {
 	MKM_DATA_COLUMN_TYPE_STRING,
-	MKM_DATA_COLUMN_TYPE_INTEGER,
+	MKM_DATA_COLUMN_TYPE_UINT32,
+	MKM_DATA_COLUMN_TYPE_PRICE,
 	MKM_DATA_COLUMN_TYPE_BOOL
 } mkm_data_column_type;
 
@@ -20,7 +21,8 @@ typedef struct _mkm_data_column
 
 	/* FIXME: union */
 	char						string_value[256];
-	uint32_t					integer_value;
+	uint32_t					uint32_value;
+	int32_t						price_value;
 	mkm_bool					bool_value;
 } mkm_data_column;
 
@@ -44,8 +46,8 @@ typedef struct _mkm_data_purchase_info
 {
 	uint32_t					id;
 	uint32_t					date;
-	uint32_t					shipping_cost;
-	uint32_t					trustee_fee;
+	int32_t						shipping_cost;
+	int32_t						trustee_fee;
 } mkm_data_purchase_info;
 
 typedef struct _mkm_data_row_array

@@ -10,20 +10,29 @@
 static void
 mkm_data_set_column_string(
 	mkm_data_column*				data,
-	const char*						string_value)
+	const char*						value)
 {
 	data->type = MKM_DATA_COLUMN_TYPE_STRING;
 
-	mkm_strcpy(data->string_value, string_value, sizeof(data->string_value));
+	mkm_strcpy(data->string_value, value, sizeof(data->string_value));
 }
 
 static void
-mkm_data_set_column_integer(
+mkm_data_set_column_uint32(
 	mkm_data_column*				data,
-	uint32_t						integer_value)
+	uint32_t						value)
 {
-	data->type = MKM_DATA_COLUMN_TYPE_INTEGER;
-	data->integer_value = integer_value;
+	data->type = MKM_DATA_COLUMN_TYPE_UINT32;
+	data->uint32_value = value;
+}
+
+static void
+mkm_data_set_column_price(
+	mkm_data_column*				data,
+	int32_t							value)
+{
+	data->type = MKM_DATA_COLUMN_TYPE_PRICE;
+	data->price_value = value;
 }
 
 static void
@@ -96,6 +105,8 @@ mkm_data_process_csv(
 			MKM_ERROR_CHECK(query->results->count == 1, "Got more results than expected.");
 			sfc_card* card = query->results->cards[0];
 
+			sfc_card_debug_print(card);
+
 			/* Allocate row and insert in linked list */
 			mkm_data_row* row = mkm_data_create_row(data);
 
@@ -155,35 +166,38 @@ mkm_data_process_column(
 	switch(config->info->type)
 	{
 	case MKM_CONFIG_COLUMN_TYPE_CSV:
-		mkm_data_set_column_integer(data, csv_row->columns[config->info->csv_column]);
+		if(config->info->csv_column == MKM_CSV_COLUMN_PRICE)
+			mkm_data_set_column_price(data, (int32_t)csv_row->columns[config->info->csv_column]);
+		else
+			mkm_data_set_column_uint32(data, csv_row->columns[config->info->csv_column]);
 		break;
 
 	case MKM_CONFIG_COLUMN_TYPE_PURCHASE_ID:
 		MKM_ERROR_CHECK(purchase_info != NULL, "No purchase information available.");
-		mkm_data_set_column_integer(data, purchase_info->id);
+		mkm_data_set_column_uint32(data, purchase_info->id);
 		break;
 
 	case MKM_CONFIG_COLUMN_TYPE_PURCHASE_DATE:
 		MKM_ERROR_CHECK(purchase_info != NULL, "No purchase information available.");
-		mkm_data_set_column_integer(data, purchase_info->date);
+		mkm_data_set_column_uint32(data, purchase_info->date);
 		break;
 
 	case MKM_CONFIG_COLUMN_TYPE_PURCHASE_SHIPPING_COST:
 		MKM_ERROR_CHECK(purchase_info != NULL, "No purchase information available.");
-		mkm_data_set_column_integer(data, purchase_info->shipping_cost);
+		mkm_data_set_column_price(data, purchase_info->shipping_cost);
 		break;
 
 	case MKM_CONFIG_COLUMN_TYPE_PURCHASE_TRUSTEE_FEE:
 		MKM_ERROR_CHECK(purchase_info != NULL, "No purchase information available.");
-		mkm_data_set_column_integer(data, purchase_info->trustee_fee);
+		mkm_data_set_column_price(data, purchase_info->trustee_fee);
 		break;
 
 	case MKM_CONFIG_COLUMN_TYPE_SFC_TCGPLAYER_ID:
-		mkm_data_set_column_integer(data, card->data.tcgplayer_id);
+		mkm_data_set_column_uint32(data, card->data.tcgplayer_id);
 		break;
 
 	case MKM_CONFIG_COLUMN_TYPE_SFC_COLLECTOR_NUMBER:
-		mkm_data_set_column_integer(data, card->data.collector_number);
+		mkm_data_set_column_uint32(data, card->data.collector_number);
 		break;
 
 	case MKM_CONFIG_COLUMN_TYPE_SFC_COLOR_IS_RED:
@@ -235,7 +249,7 @@ mkm_data_process_column(
 		break;
 
 	case MKM_CONFIG_COLUMN_TYPE_SFC_VERSION:
-		mkm_data_set_column_integer(data, card->key.version);
+		mkm_data_set_column_uint32(data, card->key.version);
 		break;
 
 	case MKM_CONFIG_COLUMN_TYPE_SFC_STRING:					

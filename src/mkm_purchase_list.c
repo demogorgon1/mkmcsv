@@ -46,17 +46,26 @@ static void
 mkm_purchase_list_make_card_key(
 	sfc_card_key*		card_key,
 	const char*			set,
-	const char*			name,
-	uint32_t			version)
+	char*				name)
 {
-	MKM_ERROR_CHECK(version <= UINT8_MAX, "Invalid card version: %u", version);
-	card_key->version = (uint8_t)version;
+	card_key->version = 0;
 
 	size_t set_len = strlen(set);
 	MKM_ERROR_CHECK(set_len < SFC_MAX_SET, "Set name too long: %s", set);
 	memcpy(card_key->set, set, set_len + 1);
 
 	size_t name_len = strlen(name);
+	if(name_len >= 3 && 
+		name[name_len - 3] == ' ' && name[name_len - 2] == 'V' &&
+		name[name_len - 1] >= '1' && name[name_len - 1] <= '9')
+	{
+		/* Name includes version, strip it off */
+		card_key->version = (uint8_t)(name[name_len - 1] - '0');
+
+		name_len -= 3;
+		name[name_len] = '\0';
+	}
+
 	MKM_ERROR_CHECK(name_len < SFC_MAX_NAME, "Card name too long: %s", name);
 	memcpy(card_key->name, name, name_len + 1);
 }
@@ -210,7 +219,7 @@ mkm_purchase_list_create_from_file(
 					MKM_ERROR_CHECK(tokenize.num_tokens == 2, "Syntax error: adjust <overall price adjustment>");
 					MKM_ERROR_CHECK(purchase != NULL, "'adjust' without purchase.");
 
-					purchase->overall_price_adjustment = 0; /* FIXME: int32_t for prices */
+					purchase->overall_price_adjustment = mkm_price_parse(tokenize.tokens[1]);
 				}
 				else if(strcmp(first_token, "csv") == 0)
 				{
@@ -249,9 +258,8 @@ mkm_purchase_list_create_from_file(
 					MKM_ERROR_CHECK(tokenize.num_tokens == 4, "Syntax error: remove <set> <condition> <name>");
 					MKM_ERROR_CHECK(purchase != NULL, "'remove' without purchase.");
 
-					/* FIXME: support different card versions */
 					sfc_card_key key;
-					mkm_purchase_list_make_card_key(&key, tokenize.tokens[1], tokenize.tokens[3], 0);
+					mkm_purchase_list_make_card_key(&key, tokenize.tokens[1], tokenize.tokens[3]);
 
 					/* FIXME: support supplying price */
 					mkm_purchase_remove(
@@ -265,9 +273,8 @@ mkm_purchase_list_create_from_file(
 					MKM_ERROR_CHECK(tokenize.num_tokens == 5, "Syntax error: add <set> <condition> <name> <price>");
 					MKM_ERROR_CHECK(purchase != NULL, "'add' without purchase.");
 
-					/* FIXME: support different card versions */
 					sfc_card_key key;
-					mkm_purchase_list_make_card_key(&key, tokenize.tokens[1], tokenize.tokens[3], 0);
+					mkm_purchase_list_make_card_key(&key, tokenize.tokens[1], tokenize.tokens[3]);
 
 					mkm_purchase_add(
 						purchase, 
