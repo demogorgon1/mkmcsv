@@ -25,11 +25,16 @@ typedef struct _mkm_purchase
 	uint32_t							date;
 	uint32_t							shipping_cost;
 	uint32_t							trustee_fee;
+	uint32_t							overall_price_adjustment;
 
 	mkm_purchase_modification_list		additions;
 	mkm_purchase_modification_list		removals;
 
+	mkm_bool							ignore_csv;
+
+	char								csv_path[256];
 	struct _mkm_csv*					csv;
+
 	struct _mkm_purchase*				next;
 } mkm_purchase;
 

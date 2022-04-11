@@ -220,8 +220,7 @@ mkm_config_get_default_cache_path(
 
 	#else
 		struct passwd* pw = getpwuid(getuid());
-		strncpy(home_path, pw->pw_dir, sizeof(home_path));
-		/* FIXME: bounds check */
+		mkm_strcpy(home_path, pw->pw_dir, sizeof(home_path));
 	#endif
 
 	char mkm_csv_dir[1024];

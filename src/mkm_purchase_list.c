@@ -198,9 +198,23 @@ mkm_purchase_list_create_from_file(
 					/* Ignore the rest of the file */
 					break;
 				}
+				else if (strcmp(first_token, "ignore_csv") == 0)
+				{
+					MKM_ERROR_CHECK(tokenize.num_tokens == 1, "Syntax error: ignore_csv");
+					MKM_ERROR_CHECK(purchase != NULL, "'ignore_csv' without purchase.");
+					
+					purchase->ignore_csv = MKM_TRUE;
+				}
+				else if (strcmp(first_token, "adjust") == 0)
+				{
+					MKM_ERROR_CHECK(tokenize.num_tokens == 2, "Syntax error: adjust <overall price adjustment>");
+					MKM_ERROR_CHECK(purchase != NULL, "'adjust' without purchase.");
+
+					purchase->overall_price_adjustment = 0; /* FIXME: int32_t for prices */
+				}
 				else if(strcmp(first_token, "csv") == 0)
 				{
-					MKM_ERROR_CHECK(tokenize.num_tokens == 2, "Syntax error: cvs <path template>");
+					MKM_ERROR_CHECK(tokenize.num_tokens == 2, "Syntax error: csv <path template>");
 					mkm_strcpy(purchase_list->csv_template, tokenize.tokens[1], sizeof(purchase_list->csv_template));
 				}
 				else if(strcmp(first_token, "purchase") == 0)
@@ -223,14 +237,17 @@ mkm_purchase_list_create_from_file(
 					purchase->shipping_cost = mkm_price_parse(tokenize.tokens[3]);
 					purchase->trustee_fee = mkm_price_parse(tokenize.tokens[4]);
 
-					/* Load CSV */
-					char csv_path[256];
-					mkm_purchase_list_make_csv_path(purchase_list->csv_template, purchase->id, csv_path, sizeof(csv_path));
-					purchase->csv = mkm_csv_create_from_file(csv_path);					
+					/* Determine CSV path */
+					mkm_purchase_list_make_csv_path(
+						purchase_list->csv_template, 
+						purchase->id, 
+						purchase->csv_path, 
+						sizeof(purchase->csv_path));
 				}
 				else if(strcmp(first_token, "remove") == 0)
 				{
 					MKM_ERROR_CHECK(tokenize.num_tokens == 4, "Syntax error: remove <set> <condition> <name>");
+					MKM_ERROR_CHECK(purchase != NULL, "'remove' without purchase.");
 
 					/* FIXME: support different card versions */
 					sfc_card_key key;
@@ -246,6 +263,7 @@ mkm_purchase_list_create_from_file(
 				else if(strcmp(first_token, "add") == 0)
 				{
 					MKM_ERROR_CHECK(tokenize.num_tokens == 5, "Syntax error: add <set> <condition> <name> <price>");
+					MKM_ERROR_CHECK(purchase != NULL, "'add' without purchase.");
 
 					/* FIXME: support different card versions */
 					sfc_card_key key;

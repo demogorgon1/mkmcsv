@@ -23,7 +23,7 @@ include(GNUInstallDirs)
 
 FetchContent_Declare(sfc
   GIT_REPOSITORY https://github.com/demogorgon1/scryfallcache.git
-  GIT_TAG        17010f03a2c5e07947cf54c9a82db10c7b12cb8c # 0.1.7
+  GIT_TAG        71d4b61d2e1ecd9f810584b3788cec572dbad7a7 # 0.1.8
 )
 
 FetchContent_MakeAvailable(sfc)
