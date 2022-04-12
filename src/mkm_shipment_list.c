@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <sfc/sfc_collector_number.h>
+
 #include "mkm_csv.h"
 #include "mkm_error.h"
 #include "mkm_price.h"
@@ -52,18 +54,11 @@ mkm_shipment_list_make_card_key(
 	MKM_ERROR_CHECK(set_len < SFC_MAX_SET, "Set name too long: %s", set);
 	memcpy(card_key->set, set, set_len + 1);
 
-	size_t collector_number_string_len = strlen(collector_number_string);
-	if(collector_number_string_len > 0 &&
-		isalpha(collector_number_string[collector_number_string_len - 1]))
-	{
-		card_key->version = collector_number_string[collector_number_string_len - 1] - 'a' + 1;
-	}
-	else
-	{
-		card_key->version = 0;
-	}
+	sfc_result result = sfc_collector_number_from_string(
+		collector_number_string, 
+		&card_key->collector_number);
 
-	card_key->collector_number = (uint16_t)strtoul(collector_number_string, NULL, 10);
+	MKM_ERROR_CHECK(result == SFC_RESULT_OK, "Failed to parse collector number string.");
 }
 
 static mkm_bool

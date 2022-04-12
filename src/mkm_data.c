@@ -195,7 +195,7 @@ mkm_data_process_column(
 		break;
 
 	case MKM_CONFIG_COLUMN_TYPE_SFC_COLLECTOR_NUMBER:
-		mkm_data_set_column_uint32(data, card->key.collector_number);
+		mkm_data_set_column_uint32(data, SFC_COLLECTOR_NUMBER(card->key.collector_number));
 		break;
 
 	case MKM_CONFIG_COLUMN_TYPE_SFC_COLOR_IS_RED:
@@ -243,7 +243,7 @@ mkm_data_process_column(
 		break;
 
 	case MKM_CONFIG_COLUMN_TYPE_SFC_VERSION:
-		mkm_data_set_column_uint32(data, card->key.version);
+		mkm_data_set_column_uint32(data, SFC_COLLECTOR_NUMBER_VERSION(card->key.collector_number));
 		break;
 
 	case MKM_CONFIG_COLUMN_TYPE_SFC_STRING:					

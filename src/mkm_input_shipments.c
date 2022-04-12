@@ -40,9 +40,9 @@ mkm_input_shipments_find_row_in_array(
 		assert(set_column->type == MKM_DATA_COLUMN_TYPE_STRING);
 		assert(condition_column->type == MKM_DATA_COLUMN_TYPE_UINT32);
 		
-		if(modification->card_key.collector_number == collector_number_column->uint32_value &&
+		if(SFC_COLLECTOR_NUMBER(modification->card_key.collector_number) == collector_number_column->uint32_value &&
 			strcmp(modification->card_key.set, set_column->string_value) == 0 &&
-			modification->card_key.version == version_column->uint32_value &&
+			SFC_COLLECTOR_NUMBER_VERSION(modification->card_key.collector_number) == version_column->uint32_value &&
 			modification->condition == condition_column->uint32_value)
 		{
 			return data_row;
@@ -303,7 +303,9 @@ mkm_input_shipments(
 			{
 				mkm_data_row* row = mkm_input_shipments_find_row_in_array(&key_column_indices, &data_row_array, modification);
 				MKM_ERROR_CHECK(row != NULL, "Row specified by removal operation not found: %s %u (version %u)",
-					modification->card_key.set, modification->card_key.collector_number, modification->card_key.version);
+					modification->card_key.set, 
+					SFC_COLLECTOR_NUMBER(modification->card_key.collector_number), 
+					SFC_COLLECTOR_NUMBER_VERSION(modification->card_key.collector_number));
 
 				row->removed = MKM_TRUE;
 			}
