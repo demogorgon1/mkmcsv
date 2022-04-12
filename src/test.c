@@ -19,7 +19,7 @@ test_assert(
 {
 	if (!result)
 	{
-		printf("FAILED: %s (%s:%d)\n", message, file, line);
+		fprintf(stderr, "FAILED: %s (%s:%d)\n", message, file, line);
 
 		exit(1);
 	}

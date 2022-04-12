@@ -42,13 +42,13 @@ typedef struct _mkm_data
 	mkm_data_row*				last_row;
 } mkm_data;
 
-typedef struct _mkm_data_purchase_info
+typedef struct _mkm_data_shipment_info
 {
 	uint32_t					id;
 	uint32_t					date;
 	int32_t						shipping_cost;
 	int32_t						trustee_fee;
-} mkm_data_purchase_info;
+} mkm_data_shipment_info;
 
 typedef struct _mkm_data_row_array
 {
@@ -66,7 +66,7 @@ void			mkm_data_destroy(
 void			mkm_data_process_csv(
 					mkm_data*						data,
 					const struct _mkm_csv*			csv,
-					const mkm_data_purchase_info*	purchase_info,
+					const mkm_data_shipment_info*	shipment_info,
 					mkm_data_row_array*				out_row_array);
 
 mkm_data_row*	mkm_data_create_row(
@@ -76,7 +76,7 @@ void			mkm_data_process_column(
 					const struct _mkm_csv_row*		csv_row,
 					struct _sfc_card*				card,
 					const mkm_config_column*		config,
-					const mkm_data_purchase_info*	purchase_info,
+					const mkm_data_shipment_info*	shipment_info,
 					mkm_data_column*				data);
 
 void			mkm_data_row_array_init(

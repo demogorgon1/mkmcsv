@@ -80,7 +80,7 @@ void
 mkm_data_process_csv(
 	mkm_data*						data,
 	const struct _mkm_csv*			csv,
-	const mkm_data_purchase_info*	purchase_info,
+	const mkm_data_shipment_info*	shipment_info,
 	mkm_data_row_array*				out_row_array)
 {
 	size_t row_index = 0;
@@ -123,7 +123,7 @@ mkm_data_process_csv(
 				assert(column_index < data->config->num_columns);
 				mkm_data_column* data_column = &row->columns[column_index++];
 
-				mkm_data_process_column(csv_row, card, column, purchase_info, data_column);
+				mkm_data_process_column(csv_row, card, column, shipment_info, data_column);
 			}
 		}
 
@@ -158,7 +158,7 @@ mkm_data_process_column(
 	const struct _mkm_csv_row*		csv_row,
 	struct _sfc_card*				card,
 	const mkm_config_column*		config,
-	const mkm_data_purchase_info*	purchase_info,
+	const mkm_data_shipment_info*	shipment_info,
 	mkm_data_column*				data)
 {
 	switch(config->info->type)
@@ -170,24 +170,24 @@ mkm_data_process_column(
 			mkm_data_set_column_uint32(data, csv_row->columns[config->info->csv_column]);
 		break;
 
-	case MKM_CONFIG_COLUMN_TYPE_PURCHASE_ID:
-		MKM_ERROR_CHECK(purchase_info != NULL, "No purchase information available.");
-		mkm_data_set_column_uint32(data, purchase_info->id);
+	case MKM_CONFIG_COLUMN_TYPE_SHIPMENT_PURCHASE_ID:
+		MKM_ERROR_CHECK(shipment_info != NULL, "No shipment information available.");
+		mkm_data_set_column_uint32(data, shipment_info->id);
 		break;
 
-	case MKM_CONFIG_COLUMN_TYPE_PURCHASE_DATE:
-		MKM_ERROR_CHECK(purchase_info != NULL, "No purchase information available.");
-		mkm_data_set_column_uint32(data, purchase_info->date);
+	case MKM_CONFIG_COLUMN_TYPE_SHIPMENT_PURCHASE_DATE:
+		MKM_ERROR_CHECK(shipment_info != NULL, "No shipment information available.");
+		mkm_data_set_column_uint32(data, shipment_info->date);
 		break;
 
-	case MKM_CONFIG_COLUMN_TYPE_PURCHASE_SHIPPING_COST:
-		MKM_ERROR_CHECK(purchase_info != NULL, "No purchase information available.");
-		mkm_data_set_column_price(data, purchase_info->shipping_cost);
+	case MKM_CONFIG_COLUMN_TYPE_SHIPMENT_SHIPPING_COST:
+		MKM_ERROR_CHECK(shipment_info != NULL, "No shipment information available.");
+		mkm_data_set_column_price(data, shipment_info->shipping_cost);
 		break;
 
-	case MKM_CONFIG_COLUMN_TYPE_PURCHASE_TRUSTEE_FEE:
-		MKM_ERROR_CHECK(purchase_info != NULL, "No purchase information available.");
-		mkm_data_set_column_price(data, purchase_info->trustee_fee);
+	case MKM_CONFIG_COLUMN_TYPE_SHIPMENT_TRUSTEE_FEE:
+		MKM_ERROR_CHECK(shipment_info != NULL, "No shipment information available.");
+		mkm_data_set_column_price(data, shipment_info->trustee_fee);
 		break;
 
 	case MKM_CONFIG_COLUMN_TYPE_SFC_TCGPLAYER_ID:

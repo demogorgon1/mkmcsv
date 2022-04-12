@@ -5,12 +5,12 @@
 #include "mkm_csv.h"
 #include "mkm_error.h"
 #include "mkm_price.h"
-#include "mkm_purchase.h"
-#include "mkm_purchase_list.h"
+#include "mkm_shipment.h"
+#include "mkm_shipment_list.h"
 #include "mkm_tokenize.h"
 
 static uint32_t
-mkm_purchase_list_parse_condition_string(
+mkm_shipment_list_parse_condition_string(
 	const char*			string)
 {
 	size_t len = strlen(string);
@@ -43,7 +43,7 @@ mkm_purchase_list_parse_condition_string(
 }
 
 static void
-mkm_purchase_list_make_card_key(
+mkm_shipment_list_make_card_key(
 	sfc_card_key*		card_key,
 	const char*			set,
 	const char*			collector_number_string)
@@ -67,7 +67,7 @@ mkm_purchase_list_make_card_key(
 }
 
 static mkm_bool
-mkm_purchase_list_is_whitespace(
+mkm_shipment_list_is_whitespace(
 	char				character)
 {
 	switch(character)
@@ -82,14 +82,14 @@ mkm_purchase_list_is_whitespace(
 }
 
 static void
-mkm_purchase_list_trim_string(
+mkm_shipment_list_trim_string(
 	char*				string)
 {
 	size_t len = strlen(string);
 
 	/* Count left whitespaces */
 	size_t trim_left = 0;
-	while(mkm_purchase_list_is_whitespace(string[trim_left]))
+	while(mkm_shipment_list_is_whitespace(string[trim_left]))
 		trim_left++;
 
 	/* Trim left */
@@ -102,13 +102,13 @@ mkm_purchase_list_trim_string(
 	if(len > 0)
 	{
 		/* Trim right */
-		for (size_t i = len - 1; i > 0 && mkm_purchase_list_is_whitespace(string[i]); i--)
+		for (size_t i = len - 1; i > 0 && mkm_shipment_list_is_whitespace(string[i]); i--)
 			string[i] = '\0';
 	}
 }
 
 static uint32_t
-mkm_purchase_list_parse_uint32(
+mkm_shipment_list_parse_uint32(
 	const char*			string)
 {
 	uint64_t v = (uint64_t)strtoull(string, NULL, 10);
@@ -117,7 +117,7 @@ mkm_purchase_list_parse_uint32(
 }
 
 static void
-mkm_purchase_list_make_csv_path(
+mkm_shipment_list_make_csv_path(
 	const char*			csv_template,
 	uint32_t			purchase_id,
 	char*				buffer,
@@ -157,11 +157,11 @@ mkm_purchase_list_make_csv_path(
 
 /*-----------------------------------------------------------------------------*/
 
-mkm_purchase_list* 
-mkm_purchase_list_create_from_file(
+mkm_shipment_list* 
+mkm_shipment_list_create_from_file(
 	const char*			path)
 {
-	mkm_purchase_list* purchase_list = MKM_NEW(mkm_purchase_list);
+	mkm_shipment_list* shipment_list = MKM_NEW(mkm_shipment_list);
 	
 	FILE* f = fopen(path, "rb");
 	MKM_ERROR_CHECK(f != NULL, "Failed to open file: %s", path);
@@ -170,7 +170,7 @@ mkm_purchase_list_create_from_file(
 		char line_buffer[1024];
 		uint32_t line_num = 1;
 
-		mkm_purchase* purchase = NULL;
+		mkm_shipment* shipment = NULL;
 
 		while(fgets(line_buffer, sizeof(line_buffer), f) != NULL)
 		{
@@ -188,7 +188,7 @@ mkm_purchase_list_create_from_file(
 			}
 
 			/* Trim */
-			mkm_purchase_list_trim_string(line_buffer);
+			mkm_shipment_list_trim_string(line_buffer);
 
 			if(line_buffer[0] != '\0')
 			{
@@ -206,76 +206,76 @@ mkm_purchase_list_create_from_file(
 				else if (strcmp(first_token, "ignore_csv") == 0)
 				{
 					MKM_ERROR_CHECK(tokenize.num_tokens == 1, "Syntax error: ignore_csv");
-					MKM_ERROR_CHECK(purchase != NULL, "'ignore_csv' without purchase.");
+					MKM_ERROR_CHECK(shipment != NULL, "'ignore_csv' without shipment.");
 					
-					purchase->ignore_csv = MKM_TRUE;
+					shipment->ignore_csv = MKM_TRUE;
 				}
 				else if (strcmp(first_token, "adjust") == 0)
 				{
 					MKM_ERROR_CHECK(tokenize.num_tokens == 2, "Syntax error: adjust <overall price adjustment>");
-					MKM_ERROR_CHECK(purchase != NULL, "'adjust' without purchase.");
+					MKM_ERROR_CHECK(shipment != NULL, "'adjust' without shipment.");
 
-					purchase->overall_price_adjustment = mkm_price_parse(tokenize.tokens[1]);
+					shipment->overall_price_adjustment = mkm_price_parse(tokenize.tokens[1]);
 				}
 				else if(strcmp(first_token, "csv") == 0)
 				{
 					MKM_ERROR_CHECK(tokenize.num_tokens == 2, "Syntax error: csv <path template>");
-					mkm_strcpy(purchase_list->csv_template, tokenize.tokens[1], sizeof(purchase_list->csv_template));
+					mkm_strcpy(shipment_list->csv_template, tokenize.tokens[1], sizeof(shipment_list->csv_template));
 				}
-				else if(strcmp(first_token, "purchase") == 0)
+				else if(strcmp(first_token, "shipment") == 0)
 				{
-					MKM_ERROR_CHECK(tokenize.num_tokens == 5, "Syntax error: purchase <id> <date> <shipping cost> <trustee fee>");
+					MKM_ERROR_CHECK(tokenize.num_tokens == 5, "Syntax error: shipment <id> <date> <shipping cost> <trustee fee>");
 					
-					/* Allocate purchase and add to end of linked list */
-					purchase = mkm_purchase_create();
+					/* Allocate shipment and add to end of linked list */
+					shipment = mkm_shipment_create();
 
-					if(purchase_list->tail != NULL)
-						purchase_list->tail->next = purchase;
+					if(shipment_list->tail != NULL)
+						shipment_list->tail->next = shipment;
 					else
-						purchase_list->head = purchase;
+						shipment_list->head = shipment;
 
-					purchase_list->tail = purchase;
+					shipment_list->tail = shipment;
 
-					/* Set purchase values */
-					purchase->id = mkm_purchase_list_parse_uint32(tokenize.tokens[1]);
-					purchase->date = mkm_purchase_list_parse_uint32(tokenize.tokens[2]);
-					purchase->shipping_cost = mkm_price_parse(tokenize.tokens[3]);
-					purchase->trustee_fee = mkm_price_parse(tokenize.tokens[4]);
+					/* Set shipment values */
+					shipment->id = mkm_shipment_list_parse_uint32(tokenize.tokens[1]);
+					shipment->date = mkm_shipment_list_parse_uint32(tokenize.tokens[2]);
+					shipment->shipping_cost = mkm_price_parse(tokenize.tokens[3]);
+					shipment->trustee_fee = mkm_price_parse(tokenize.tokens[4]);
 
 					/* Determine CSV path */
-					mkm_purchase_list_make_csv_path(
-						purchase_list->csv_template, 
-						purchase->id, 
-						purchase->csv_path, 
-						sizeof(purchase->csv_path));
+					mkm_shipment_list_make_csv_path(
+						shipment_list->csv_template, 
+						shipment->id, 
+						shipment->csv_path, 
+						sizeof(shipment->csv_path));
 				}
 				else if(strcmp(first_token, "remove") == 0)
 				{
 					MKM_ERROR_CHECK(tokenize.num_tokens == 4, "Syntax error: remove <set> <collector number> <condition>");
-					MKM_ERROR_CHECK(purchase != NULL, "'remove' without purchase.");
+					MKM_ERROR_CHECK(shipment != NULL, "'remove' without shipment.");
 
 					sfc_card_key key;
-					mkm_purchase_list_make_card_key(&key, tokenize.tokens[1], tokenize.tokens[2]);
+					mkm_shipment_list_make_card_key(&key, tokenize.tokens[1], tokenize.tokens[2]);
 
 					/* FIXME: support supplying price */
-					mkm_purchase_remove(
-						purchase, 
+					mkm_shipment_remove(
+						shipment, 
 						&key, 
-						mkm_purchase_list_parse_condition_string(tokenize.tokens[3]),
+						mkm_shipment_list_parse_condition_string(tokenize.tokens[3]),
 						UINT32_MAX);
 				}
 				else if(strcmp(first_token, "add") == 0)
 				{
 					MKM_ERROR_CHECK(tokenize.num_tokens == 5, "Syntax error: add <set> <collect number> <condition> <price>");
-					MKM_ERROR_CHECK(purchase != NULL, "'add' without purchase.");
+					MKM_ERROR_CHECK(shipment != NULL, "'add' without shipment.");
 
 					sfc_card_key key;
-					mkm_purchase_list_make_card_key(&key, tokenize.tokens[1], tokenize.tokens[2]);
+					mkm_shipment_list_make_card_key(&key, tokenize.tokens[1], tokenize.tokens[2]);
 
-					mkm_purchase_add(
-						purchase, 
+					mkm_shipment_add(
+						shipment, 
 						&key, 
-						mkm_purchase_list_parse_condition_string(tokenize.tokens[3]),
+						mkm_shipment_list_parse_condition_string(tokenize.tokens[3]),
 						mkm_price_parse(tokenize.tokens[4]));
 				}
 				else
@@ -290,23 +290,23 @@ mkm_purchase_list_create_from_file(
 
 	fclose(f);
 
-	return purchase_list;
+	return shipment_list;
 }
 
 void				
-mkm_purchase_list_destroy(
-	mkm_purchase_list*	purchase_list)
+mkm_shipment_list_destroy(
+	mkm_shipment_list*	shipment_list)
 {
-	/* Free purchases */
+	/* Free shipments */
 	{
-		mkm_purchase* purchase = purchase_list->head;
-		while (purchase != NULL)
+		mkm_shipment* shipment = shipment_list->head;
+		while (shipment != NULL)
 		{
-			mkm_purchase* next = purchase->next;
-			mkm_purchase_destroy(purchase);
-			purchase = next;
+			mkm_shipment* next = shipment->next;
+			mkm_shipment_destroy(shipment);
+			shipment = next;
 		}
 	}
 
-	free(purchase_list);
+	free(shipment_list);
 }

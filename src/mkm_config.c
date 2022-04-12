@@ -16,7 +16,7 @@
 #include "mkm_csv.h"
 #include "mkm_error.h"
 #include "mkm_input_csv.h"
-#include "mkm_input_purchases.h"
+#include "mkm_input_shipments.h"
 #include "mkm_output_text.h"
 
 static mkm_config_column_info g_mkm_config_column_info[] =
@@ -28,10 +28,10 @@ static mkm_config_column_info g_mkm_config_column_info[] =
 	{ "is_foil", MKM_CONFIG_COLUMN_TYPE_CSV, 0, MKM_CSV_COLUMN_IS_FOIL												},
 	{ "is_signed", MKM_CONFIG_COLUMN_TYPE_CSV, 0, MKM_CSV_COLUMN_IS_SIGNED											},
 	{ "is_altered", MKM_CONFIG_COLUMN_TYPE_CSV, 0, MKM_CSV_COLUMN_IS_ALTERED										},
-	{ "purchase_id", MKM_CONFIG_COLUMN_TYPE_PURCHASE_ID, 0, 0														},
-	{ "shipping_cost", MKM_CONFIG_COLUMN_TYPE_PURCHASE_SHIPPING_COST, 0, 0											},
-	{ "purchase_date", MKM_CONFIG_COLUMN_TYPE_PURCHASE_DATE, 0, 0													},
-	{ "trustee_fee", MKM_CONFIG_COLUMN_TYPE_PURCHASE_TRUSTEE_FEE, 0, 0												},
+	{ "purchase_id", MKM_CONFIG_COLUMN_TYPE_SHIPMENT_PURCHASE_ID, 0, 0												},
+	{ "shipping_cost", MKM_CONFIG_COLUMN_TYPE_SHIPMENT_SHIPPING_COST, 0, 0											},
+	{ "purchase_date", MKM_CONFIG_COLUMN_TYPE_SHIPMENT_PURCHASE_DATE, 0, 0											},
+	{ "trustee_fee", MKM_CONFIG_COLUMN_TYPE_SHIPMENT_TRUSTEE_FEE, 0, 0												},
 	{ "tcgplayer_id", MKM_CONFIG_COLUMN_TYPE_SFC_TCGPLAYER_ID, 0, 0													},
 	{ "collector_number", MKM_CONFIG_COLUMN_TYPE_SFC_COLLECTOR_NUMBER, 0, 0											},
 	{ "color_is_red", MKM_CONFIG_COLUMN_TYPE_SFC_COLOR_IS_RED, 0, 0													},
@@ -279,11 +279,11 @@ mkm_config_init(
 				char* input_type = argv[i];
 				if(strcmp(input_type, "csv") == 0)
 					config->input_callback = mkm_input_csv;
-				else if (strcmp(input_type, "purchases") == 0)
+				else if (strcmp(input_type, "shipments") == 0)
 				{
-					config->input_callback = mkm_input_purchases;
+					config->input_callback = mkm_input_shipments;
 
-					/* Add required columns for processing purchases */
+					/* Add required columns for processing shipments */
 					mkm_config_parse_columns(config, "name+set+collector_number+version+condition+price+shipping_cost+trustee_fee");
 				}
 				else
