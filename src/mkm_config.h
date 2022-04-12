@@ -43,6 +43,7 @@ typedef struct _mkm_config_column_info
 typedef struct _mkm_config_column
 {
 	const mkm_config_column_info*		info;
+	mkm_bool							hidden;
 	struct _mkm_config_column*			next;
 } mkm_config_column;
 

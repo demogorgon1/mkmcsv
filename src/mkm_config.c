@@ -128,10 +128,40 @@ mkm_config_find_column_info(
 	return NULL;
 }
 
+static mkm_config_column*
+mkm_config_get_column_by_name(
+	mkm_config*						config,
+	const char*						name)
+{
+	for(mkm_config_column* column = config->columns; column != NULL; column = column->next)
+	{
+		if(strcmp(column->info->name, name) == 0)
+			return column;
+	}
+
+	return NULL;
+}
+
+static size_t
+mkm_config_count_hidden_columns(
+	const mkm_config*				config)
+{
+	size_t count = 0;
+
+	for (mkm_config_column* column = config->columns; column != NULL; column = column->next)
+	{
+		if(column->hidden)
+			count++;
+	}
+
+	return count;
+}
+
 static void
 mkm_config_parse_columns(
 	mkm_config*						config,
-	const char*						string)
+	const char*						string,
+	mkm_bool						hidden)
 {
 	char temp[1024];
 	mkm_strcpy(temp, string, sizeof(temp));
@@ -149,13 +179,16 @@ mkm_config_parse_columns(
 
 		p[token_length] = '\0';
 
-		if(mkm_config_get_column_index_by_name(config, p) == UINT32_MAX)
+		mkm_config_column* existing_column = mkm_config_get_column_by_name(config, p);
+
+		if(existing_column == NULL)
 		{
-			/* Only add column if not already defined */
+			/* Column not defined */
 			mkm_config_column* column = MKM_NEW(mkm_config_column);
 
 			column->info = mkm_config_find_column_info(p);
-
+			column->hidden = hidden;
+			
 			if (last_column != NULL)
 				last_column->next = column;
 			else
@@ -164,6 +197,12 @@ mkm_config_parse_columns(
 			last_column = column;
 
 			config->num_columns++;
+		}
+		else
+		{
+			/* Already defined - override hidden flag if needed */
+			if(existing_column->hidden && !hidden)
+				existing_column->hidden = MKM_FALSE;
 		}
 
 		if (end_of_line)
@@ -264,7 +303,7 @@ mkm_config_init(
 			{
 				i++;
 				MKM_ERROR_CHECK(i < argc, "Expected columns after --columns.");
-				mkm_config_parse_columns(config, argv[i]);
+				mkm_config_parse_columns(config, argv[i], MKM_FALSE);
 			}
 			else if (strcmp(arg, "--cache") == 0)
 			{
@@ -278,16 +317,20 @@ mkm_config_init(
 				MKM_ERROR_CHECK(i < argc, "Expected input type after --input.");
 				char* input_type = argv[i];
 				if(strcmp(input_type, "csv") == 0)
+				{
 					config->input_callback = mkm_input_csv;
+				}
 				else if (strcmp(input_type, "shipments") == 0)
 				{
 					config->input_callback = mkm_input_shipments;
 
 					/* Add required columns for processing shipments */
-					mkm_config_parse_columns(config, "name+set+collector_number+version+condition+price+shipping_cost+trustee_fee");
+					mkm_config_parse_columns(config, "name+set+collector_number+version+condition+price+shipping_cost+trustee_fee", MKM_TRUE);
 				}
 				else
+				{
 					mkm_error("Invalid input type: %s", input_type);
+				}
 			}
 			else if (strcmp(arg, "--output") == 0)
 			{
@@ -320,10 +363,10 @@ mkm_config_init(
 		}
 	}
 
-	if(config->columns == NULL)
+	if(config->num_columns == mkm_config_count_hidden_columns(config))
 	{
-		/* Add default columns */
-		mkm_config_parse_columns(config, "name+version+set+condition+price");
+		/* All columns are hidden, add default columns ones */
+		mkm_config_parse_columns(config, "name+version+set+condition+price", MKM_FALSE);
 	}
 
 	if(config->cache_file[0] == '\0')

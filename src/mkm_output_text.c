@@ -52,37 +52,50 @@ mkm_output_text(
 	{
 		size_t							width;
 		const char*						header;
+		size_t							index;
 	};
 
 	struct column_info* columns = (struct column_info*)malloc(data->config->num_columns * sizeof(struct column_info));
 	
 	size_t column_index = 0;
+	size_t visible_column_count = 0;
 
 	for (const mkm_config_column* column = data->config->columns; column != NULL; column = column->next)
 	{
 		assert(column_index < data->config->num_columns);
 
-		size_t cell_width = strlen(column->info->name);
+		printf("%s : %u\n", column->info->name, column->hidden);
 
-		for(const mkm_data_row* row = data->first_row; row != NULL; row = row->next)
+		if(!column->hidden)
 		{
-			char buffer[256];
-			mkm_output_text_render_cell(&row->columns[column_index], buffer, sizeof(buffer));
-			size_t len = strlen(buffer);
-			if(len > cell_width)
-				cell_width = len;
-		}
+			size_t cell_width = strlen(column->info->name);
 
-		columns[column_index].width = cell_width;
-		columns[column_index].header = column->info->name;
+			for(const mkm_data_row* row = data->first_row; row != NULL; row = row->next)
+			{
+				char buffer[256];
+				mkm_output_text_render_cell(&row->columns[column_index], buffer, sizeof(buffer));
+				size_t len = strlen(buffer);
+				if(len > cell_width)
+					cell_width = len;
+			}
+
+			columns[visible_column_count].width = cell_width;
+			columns[visible_column_count].header = column->info->name;
+			columns[visible_column_count].index = column_index;
+
+			visible_column_count++;
+		}
 
 		column_index++;
 	}
 
+	if(visible_column_count == 0)
+		return;
+
 	/* Output header */
 	{
 		struct column_info* column = columns;
-		for (size_t i = 0; i < data->config->num_columns; i++)
+		for (size_t i = 0; i < visible_column_count; i++)
 		{
 			fprintf(data->config->output_stream, "%s", column->header);
 
@@ -101,7 +114,7 @@ mkm_output_text(
 	/* Output header line */
 	{
 		struct column_info* column = columns;
-		for (size_t i = 0; i < data->config->num_columns; i++)
+		for (size_t i = 0; i < visible_column_count; i++)
 		{
 			mkm_output_text_repeating_chars(data->config->output_stream, '-', column->width);
 			fprintf(data->config->output_stream, "|");
@@ -118,10 +131,10 @@ mkm_output_text(
 			continue;
 
 		struct column_info* column = columns;
-		for (size_t i = 0; i < data->config->num_columns; i++)
+		for (size_t i = 0; i < visible_column_count; i++)
 		{
 			char buffer[256];
-			mkm_output_text_render_cell(&row->columns[i], buffer, sizeof(buffer));
+			mkm_output_text_render_cell(&row->columns[column->index], buffer, sizeof(buffer));
 			size_t len = strlen(buffer);
 
 			assert(len <= column->width);
