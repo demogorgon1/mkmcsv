@@ -17,6 +17,7 @@
 #include "mkm_error.h"
 #include "mkm_input_csv.h"
 #include "mkm_input_shipments.h"
+#include "mkm_output_csv.h"
 #include "mkm_output_text.h"
 
 static mkm_config_column_info g_mkm_config_column_info[] =
@@ -395,8 +396,14 @@ mkm_config_init(
 				char* output_type = argv[i];
 				if (strcmp(output_type, "text") == 0)
 					config->output_callback = mkm_output_text;
+				else if(strcmp(output_type, "csv") == 0)
+					config->output_callback = mkm_output_csv;
 				else
 					mkm_error("Invalid output type: %s", output_type);
+			}
+			else if(strcmp(arg, "--verbose") == 0)
+			{
+				config->flags |= MKM_CONFIG_VERBOSE;
 			}
 			else
 			{

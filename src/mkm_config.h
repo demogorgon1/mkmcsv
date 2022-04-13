@@ -7,6 +7,8 @@
 
 #include "mkm_base.h"
 
+#define	MKM_CONFIG_VERBOSE	0x00000001
+
 typedef enum _mkm_config_column_type
 {
 	MKM_CONFIG_COLUMN_TYPE_UNDEFINED,

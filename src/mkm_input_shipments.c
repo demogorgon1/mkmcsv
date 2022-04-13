@@ -276,15 +276,11 @@ mkm_input_shipments(
 
 		for(mkm_shipment* shipment = shipment_list->head; shipment != NULL; shipment = shipment->next)
 		{
-			printf("%u...\n", shipment->id);
+			if(data->config->flags & MKM_CONFIG_VERBOSE)
+				fprintf(stdout, "Processing shipment: %u...\n", shipment->id);
 			
 			if(!shipment->ignore_csv)
 			{
-				if(shipment->id == 17435248)
-				{
-					printf("!\n");
-				}
-
 				/* Load CSV */
 				shipment->csv = mkm_csv_create_from_file(shipment->csv_path);
 			}
