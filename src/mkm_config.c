@@ -10,6 +10,7 @@
 #endif
 
 #include <malloc.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "mkm_config.h"
@@ -442,6 +443,13 @@ mkm_config_init(
 	int					argc,
 	char**				argv)
 {
+	if(argc == 1)
+	{
+		/* No arguments, just show help and exit */
+		mkm_config_help();
+		exit(0);
+	}
+
 	memset(config, 0, sizeof(mkm_config));
 
 	config->input_callback = mkm_input_csv;
