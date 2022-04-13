@@ -770,6 +770,17 @@ mkm_config_uninit(
 			column = next;
 		}
 	}
+
+	/* Free sorting keys */
+	{
+		mkm_config_sort_column* column = config->sort_columns;
+		while (column != NULL)
+		{
+			mkm_config_sort_column* next = column->next;
+			free(column);
+			column = next;
+		}
+	}
 }
 
 uint32_t	
