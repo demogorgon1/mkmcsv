@@ -246,31 +246,62 @@ mkm_data_process_csv(
 			if (mkm_csv_row_has_column(csv_row, MKM_CSV_COLUMN_GROUP_COUNT))
 				count = csv_row->columns[MKM_CSV_COLUMN_GROUP_COUNT];
 
+			uint32_t playset_card_count = 1;
+			int32_t playset_total_price = 0;
+			int32_t playset_single_price = 0;
+			int32_t playset_single_price_rounding_error = 0;
+			if(mkm_csv_row_has_column(csv_row, MKM_CSV_COLUMN_IS_PLAYSET) &&
+				mkm_csv_row_has_column(csv_row, MKM_CSV_COLUMN_PRICE))
+			{
+				if(csv_row->columns[MKM_CSV_COLUMN_IS_PLAYSET] != 0)
+				{
+					playset_card_count = 4;
+					playset_total_price = (int32_t)csv_row->columns[MKM_CSV_COLUMN_PRICE];
+					playset_single_price = playset_total_price / 4;
+					playset_single_price_rounding_error = playset_total_price - playset_single_price * 4;
+				}
+			}
+
 			for(uint32_t i = 0; i < count; i++)
 			{
-				/* Allocate row and insert in linked list */
-				mkm_data_row* row = mkm_data_create_row(data);
-
-				/* If caller requested an array of rows, add it here */
-				if (out_row_array != NULL)
+				for(uint32_t j = 0; j < playset_card_count; j++)
 				{
-					assert(row_index < out_row_array->num_rows);
-					out_row_array->rows[row_index] = row;
+					/* Allocate row and insert in linked list */
+					mkm_data_row* row = mkm_data_create_row(data);
+
+					/* If caller requested an array of rows, add it here */
+					if (out_row_array != NULL)
+					{
+						assert(row_index < out_row_array->num_rows);
+						out_row_array->rows[row_index] = row;
+					}
+
+					/* Generate row */
+					size_t column_index = 0;
+					for (const mkm_config_column* column = data->config->columns; column != NULL; column = column->next)
+					{
+						assert(column_index < data->config->num_columns);
+						mkm_data_column* data_column = &row->columns[column_index++];
+
+						mkm_data_process_column(csv_row, card, column, shipment_info, data_column);
+
+						if(playset_card_count > 1 &&
+							column->info->type == MKM_CONFIG_COLUMN_TYPE_CSV &&
+							column->info->csv_column == MKM_CSV_COLUMN_PRICE)
+						{
+							assert(data_column->type == MKM_DATA_COLUMN_TYPE_PRICE);
+
+							data_column->price_value = playset_single_price;
+
+							/* Add rounding error to first card of playset */
+							if(playset_single_price_rounding_error > 0 && j == 0)
+								data_column->price_value += playset_single_price_rounding_error;
+						}
+					}
+
+					/* Add it to binary search tree for sorting */
+					mkm_data_add_row(data, row);
 				}
-
-				/* Generate row */
-				size_t column_index = 0;
-
-				for (const mkm_config_column* column = data->config->columns; column != NULL; column = column->next)
-				{
-					assert(column_index < data->config->num_columns);
-					mkm_data_column* data_column = &row->columns[column_index++];
-
-					mkm_data_process_column(csv_row, card, column, shipment_info, data_column);
-				}
-
-				/* Add it to binary search tree for sorting */
-				mkm_data_add_row(data, row);
 			}
 		}
 
