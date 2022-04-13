@@ -158,6 +158,8 @@ mkm_shipment_list_create_from_file(
 {
 	mkm_shipment_list* shipment_list = MKM_NEW(mkm_shipment_list);
 	
+	mkm_strcpy(shipment_list->csv_template, "ArticlesFromShipment{}..csv", sizeof(shipment_list->csv_template));
+
 	FILE* f = fopen(path, "rb");
 	MKM_ERROR_CHECK(f != NULL, "Failed to open file: %s", path);
 

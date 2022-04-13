@@ -112,6 +112,113 @@ static mkm_config_column_info g_mkm_config_column_info[] =
 	{ NULL, 0, 0, 0																									}
 };
 
+static void
+mkm_config_help()
+{
+	printf(
+		"usage: mkmcsv [options] <input files>\n"
+		"\n"
+		"    Input files are read, processed into rows, optionally sorted, and then\n"
+		"    output is generated.\n"
+		"\n"
+		"options:\n"
+		"\n"
+		"    --input <csv | shipments>\n"
+		"        csv        Input files are CSV files exported by Cardmarket.\n"
+		"        shipments  Each input file is a text file containing a list of\n"
+		"                   shipments. For details run 'mkmcsv --help shipments'.\n"
+		"\n"
+		"    --output <text | csv>\n"
+		"        text       Output is a text formated table of all data rows.\n"
+		"        csv        Output is a CSV file.\n"
+		"\n"
+		"    --columns <list of columns>\n"
+		"        Specifies the '+' seperated names of columns that should be shown in\n"
+		"        the output. For a list of column names run 'mkmcsv --help columns'.\n"
+		"\n"
+		"    --sort <list of columns>\n"
+		"        Sort output rows by the list of '+' seperated column names. Prefix\n"
+		"        name with '-' for descending order instead of ascending.\n"
+		"\n"
+		"    --cache <path>\n"
+		"        Sets the location of the scryfallcache database is stored. Defaults\n"
+		"        to '.mkmcsv' in your home directory.\n"
+		"\n"
+		"    --verbose\n"
+		"        Enables verbose output.\n"
+	);
+}
+
+static void
+mkm_config_help_columns()
+{
+	printf("List of column names accepted by --columns and --sort:\n");
+	printf("\n");
+
+	const mkm_config_column_info* p = g_mkm_config_column_info;
+	while (p->name != NULL)
+	{
+		printf("    %s\n", p->name);
+		p++;
+	}
+}
+
+static void
+mkm_config_help_shipments()
+{
+	printf("Description of the 'shipments' text file format:\n");
+	printf("\n");
+
+	printf(
+		"A file contains a list of simple commands that are used to describe\n"
+		"shipments you've received:\n"
+		"\n"
+		"csv <path template>\n"
+		"    Tells mkmcsv where to find the CSV file associated with a\n"
+		"    shipment, if any. '{}' is substituted with the shipment ID.\n"
+		"\n"
+		"    Example:\n"
+		"        csv \"/some/path/some_csv_file_{}.csv\"\n"
+		"\n"
+		"    Defaults to \"ArticlesFromShipment{}..csv\"\n"
+		"\n"
+		"shipment <shipment ID> <date> <shipping cost> <trustee fee>\n"
+		"    Creates a shipment with the specified ID. Date is in the form YYYYMMDD.\n"
+		"    The path to the corresponding CSV file will be created using the\n"
+		"    template as desribed above. If the CSV file doesn't exist, it will just\n"
+		"    be ignored.\n"
+		"\n"
+		"    Example:\n"
+		"        shipment 123456 20220413 4.00 0.20\n"
+		"\n"
+		"remove <set> <collector number> <condition>\n"
+		"    Removes a card from the previously created shipment identified by its\n"
+		"    set, collector number, and condition.\n"
+		"\n"
+		"    Example:\n"
+		"        remove lea 287 EX\n"
+		"\n"
+		"        This will remove alpha card #287 in EX condition from the shipment.\n"
+		"\n"
+		"add <set> <collector number> <condition> <price>\n"
+		"    Adds a card to the previously created shipment. Works similar to 'remove',\n"
+		"    except that a price is specified.\n"
+		"\n"
+		"    Example:\n"
+		"        add lea 287 EX 29.00\n"
+		"\n"
+		"adjust <overall price adjustment>\n"
+		"    Adjusts the overall price of the shipment. The adjustment is spread out over\n"
+		"    the cards depending on their cost.\n"
+		"\n"
+		"    Example:\n"
+		"        adjust -1.00\n"
+		"\n"
+		"ignore_csv\n"
+		"    The CSV file will be ignored even if it exists.\n"
+	);
+}
+
 static const mkm_config_column_info*
 mkm_config_find_column_info(
 	const char*						string)
@@ -404,6 +511,17 @@ mkm_config_init(
 			else if(strcmp(arg, "--verbose") == 0)
 			{
 				config->flags |= MKM_CONFIG_VERBOSE;
+			}
+			else if(strcmp(arg, "--help") == 0)
+			{
+				if (i + 1 < argc && strcmp(argv[i + 1], "columns") == 0)
+					mkm_config_help_columns();
+				else if (i + 1 < argc && strcmp(argv[i + 1], "shipments") == 0)
+					mkm_config_help_shipments();
+				else
+					mkm_config_help();
+
+				exit(0);
 			}
 			else
 			{
