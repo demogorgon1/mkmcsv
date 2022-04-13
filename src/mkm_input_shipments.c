@@ -112,6 +112,8 @@ mkm_input_shipment_add_row(
 		mkm_data_process_column(&csv_row, card, column, &shipment_info, data_column);
 	}
 
+	mkm_data_add_row(data, row);
+
 	return row;
 }
 
@@ -278,6 +280,11 @@ mkm_input_shipments(
 			
 			if(!shipment->ignore_csv)
 			{
+				if(shipment->id == 17435248)
+				{
+					printf("!\n");
+				}
+
 				/* Load CSV */
 				shipment->csv = mkm_csv_create_from_file(shipment->csv_path);
 			}

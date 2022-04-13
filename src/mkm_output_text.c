@@ -64,8 +64,6 @@ mkm_output_text(
 	{
 		assert(column_index < data->config->num_columns);
 
-		printf("%s : %u\n", column->info->name, column->hidden);
-
 		if(!column->hidden)
 		{
 			size_t cell_width = strlen(column->info->name);

@@ -37,6 +37,8 @@ main(
 
 	config.input_callback(data);
 
+	mkm_data_sort(data);
+
 	config.output_callback(data);
 
 	mkm_data_destroy(data);

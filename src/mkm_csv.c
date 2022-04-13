@@ -13,7 +13,7 @@ typedef struct _mkm_csv_line
 {
 	size_t			num_columns;
 	const char*		columns[MAX_CSV_COLUMNS];
-	uint8_t			column_enums[MAX_CSV_COLUMNS];
+	uint32_t		column_enums[MAX_CSV_COLUMNS];
 	char			string[MAX_CSV_LINE_LENGTH];
 } mkm_csv_line;
 
@@ -62,7 +62,7 @@ mkm_csv_read_line(
 uint32_t
 mkm_csv_column_to_uint32(
 	const char*			column,
-	uint8_t				column_enum)
+	uint32_t			column_enum)
 {
 	switch(column_enum)
 	{
@@ -93,10 +93,12 @@ mkm_csv_create_from_file(
 		for (size_t i = 0; i < header_line.num_columns; i++)
 		{
 			const char* p = header_line.columns[i];
-			uint8_t e = MKM_CSV_COLUMN_UNUSED;
+			uint32_t e = MKM_CSV_COLUMN_UNUSED;
 		
 			if(strcmp(p, "idProduct") == 0)
 				e = MKM_CSV_COLUMN_ID_PRODUCT;
+			else if (strcmp(p, "groupCount") == 0)
+				e = MKM_CSV_COLUMN_GROUP_COUNT;
 			else if (strcmp(p, "price") == 0)
 				e = MKM_CSV_COLUMN_PRICE;
 			else if (strcmp(p, "idLanguage") == 0)
@@ -141,7 +143,7 @@ mkm_csv_create_from_file(
 		/* Convert columns */
 		for(size_t i = 0; i < line.num_columns; i++)
 		{
-			uint8_t e = header_line.column_enums[i];
+			uint32_t e = header_line.column_enums[i];
 			assert(e < NUM_MKM_CSV_COLUMNS);
 
 			if(e != MKM_CSV_COLUMN_UNUSED)
@@ -180,7 +182,7 @@ mkm_csv_destroy(
 mkm_bool	
 mkm_csv_row_has_column(
 	const mkm_csv_row*	row,
-	uint8_t				index)
+	uint32_t			index)
 {
 	return row->flags & (1 << index);
 }

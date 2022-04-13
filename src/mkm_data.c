@@ -8,6 +8,27 @@
 #include "mkm_error.h"
 
 static void
+mkm_data_row_debug_print(
+	const mkm_config*				config,
+	const mkm_data_row*				row)
+{
+	for(size_t i = 0; i < config->num_columns; i++)
+	{
+		const mkm_data_column* column = &row->columns[i];
+		switch(column->type)
+		{
+		case MKM_DATA_COLUMN_TYPE_STRING:	printf("%s ", column->string_value); break;
+		case MKM_DATA_COLUMN_TYPE_UINT32:	printf("%u ", column->uint32_value); break;
+		case MKM_DATA_COLUMN_TYPE_PRICE:	printf("%d ", column->price_value); break;
+		case MKM_DATA_COLUMN_TYPE_BOOL:		printf("%s ", column->bool_value ? "true" : "false"); break;
+		default:							assert(0);
+		}
+	}
+
+	printf("\n");
+}
+
+static void
 mkm_data_set_column_string(
 	mkm_data_column*				data,
 	const char*						value)
@@ -42,6 +63,122 @@ mkm_data_set_column_bool(
 {
 	data->type = MKM_DATA_COLUMN_TYPE_BOOL;
 	data->bool_value = bool_value;
+}
+
+static int32_t
+mkm_data_compare_rows(
+	const mkm_config_sort_column*	sort_columns,
+	const mkm_data_row*				a,
+	const mkm_data_row*				b)
+{
+	for(const mkm_config_sort_column* sort_column = sort_columns; sort_column != NULL; sort_column = sort_column->next)
+	{
+		const mkm_data_column* column_a = &a->columns[sort_column->column_index];
+		const mkm_data_column* column_b = &b->columns[sort_column->column_index];
+
+		assert(column_a->type == column_b->type);
+
+		int32_t result = 0;
+
+		switch(column_a->type)
+		{
+		case MKM_DATA_COLUMN_TYPE_STRING:
+			result = strcmp(column_b->string_value, column_a->string_value);
+			break;
+			
+		case MKM_DATA_COLUMN_TYPE_UINT32:
+			if(column_a->uint32_value != column_b->uint32_value)
+				result = column_b->uint32_value > column_a->uint32_value ? 1 : -1;
+			break;	
+
+		case MKM_DATA_COLUMN_TYPE_PRICE:
+			if (column_a->price_value != column_b->price_value)
+				result = column_b->price_value > column_a->price_value ? 1 : -1;
+			break;
+
+		case MKM_DATA_COLUMN_TYPE_BOOL:
+			if (column_a->bool_value != column_b->bool_value)
+				result = column_b->bool_value ? 1 : -1;
+			break;
+
+		default:
+			assert(0);
+		}
+
+		if(result != 0)
+			return result * sort_column->order;
+	}
+
+	return 0;
+}
+
+static void
+mkm_data_add_row_to_binary_search_tree(
+	mkm_data*						data,
+	mkm_data_row*					row)
+{
+	if(data->config->sort_columns == NULL)
+		return;
+
+	if(data->binary_search_tree_root == NULL)
+	{
+		data->binary_search_tree_root = row;
+	}
+	else
+	{
+		mkm_data_row* node = data->binary_search_tree_root;
+
+		for(;;)
+		{
+			int32_t compare_result = mkm_data_compare_rows(data->config->sort_columns, node, row);
+
+			if(compare_result >= 0)
+			{
+				if(node->right != NULL)
+				{
+					node = node->right;
+				}
+				else
+				{
+					node->right = row;
+					break;
+				}	
+			}
+			else
+			{
+				if (node->left != NULL)
+				{
+					node = node->left;
+				}
+				else
+				{
+					node->left = row;
+					break;
+				}
+			}
+		}
+	}
+}
+
+void
+mkm_data_tree_sort(
+	mkm_data*					data,
+	mkm_data_row*				row)
+{
+	if(row->left != NULL)
+		mkm_data_tree_sort(data, row->left);
+
+	row->next = NULL;
+
+	if(data->last_row != NULL)
+		data->last_row->next = row;
+	else 
+		data->first_row = row;
+
+	data->last_row = row;
+
+	if(row->right != NULL)
+		mkm_data_tree_sort(data, row->right);
 }
 
 /*------------------------------------------------------------------*/
@@ -105,25 +242,35 @@ mkm_data_process_csv(
 			MKM_ERROR_CHECK(query->results->count == 1, "Got more results than expected.");
 			sfc_card* card = query->results->cards[0];
 
-			/* Allocate row and insert in linked list */
-			mkm_data_row* row = mkm_data_create_row(data);
+			uint32_t count = 1;
+			if (mkm_csv_row_has_column(csv_row, MKM_CSV_COLUMN_GROUP_COUNT))
+				count = csv_row->columns[MKM_CSV_COLUMN_GROUP_COUNT];
 
-			/* If caller requested an array of rows, add it here */
-			if (out_row_array != NULL)
+			for(uint32_t i = 0; i < count; i++)
 			{
-				assert(row_index < out_row_array->num_rows);
-				out_row_array->rows[row_index] = row;
-			}
+				/* Allocate row and insert in linked list */
+				mkm_data_row* row = mkm_data_create_row(data);
 
-			/* Generate row */
-			size_t column_index = 0;
+				/* If caller requested an array of rows, add it here */
+				if (out_row_array != NULL)
+				{
+					assert(row_index < out_row_array->num_rows);
+					out_row_array->rows[row_index] = row;
+				}
 
-			for (const mkm_config_column* column = data->config->columns; column != NULL; column = column->next)
-			{
-				assert(column_index < data->config->num_columns);
-				mkm_data_column* data_column = &row->columns[column_index++];
+				/* Generate row */
+				size_t column_index = 0;
 
-				mkm_data_process_column(csv_row, card, column, shipment_info, data_column);
+				for (const mkm_config_column* column = data->config->columns; column != NULL; column = column->next)
+				{
+					assert(column_index < data->config->num_columns);
+					mkm_data_column* data_column = &row->columns[column_index++];
+
+					mkm_data_process_column(csv_row, card, column, shipment_info, data_column);
+				}
+
+				/* Add it to binary search tree for sorting */
+				mkm_data_add_row(data, row);
 			}
 		}
 
@@ -303,4 +450,28 @@ mkm_data_row_array_count_non_nulls(
 	}
 
 	return count;
+}
+
+void			
+mkm_data_sort(
+	mkm_data*					data)
+{
+	if(data->config->sort_columns == NULL)
+		return;
+
+	/* Rows are already organized in a binary search tree, so for sorting the linked list 
+	   we just need to walk the tree */
+	data->first_row = NULL;
+	data->last_row = NULL;
+
+	mkm_data_tree_sort(data, data->binary_search_tree_root);
+}
+
+void			
+mkm_data_add_row(
+	mkm_data*					data,
+	mkm_data_row*				row)
+{
+	/* Insert in binary search tree */
+	mkm_data_add_row_to_binary_search_tree(data, row);
 }

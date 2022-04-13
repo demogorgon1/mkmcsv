@@ -31,6 +31,8 @@ typedef struct _mkm_data_row
 	mkm_bool					removed;
 	mkm_data_column*			columns;
 	struct _mkm_data_row*		next;
+	struct _mkm_data_row*		left;
+	struct _mkm_data_row*		right;
 } mkm_data_row;
 
 typedef struct _mkm_data
@@ -40,6 +42,7 @@ typedef struct _mkm_data
 
 	mkm_data_row*				first_row;
 	mkm_data_row*				last_row;
+	mkm_data_row*				binary_search_tree_root;
 } mkm_data;
 
 typedef struct _mkm_data_shipment_info
@@ -92,5 +95,12 @@ void			mkm_data_row_array_add(
 
 size_t			mkm_data_row_array_count_non_nulls(
 					mkm_data_row_array*				row_array);
+
+void			mkm_data_sort(
+					mkm_data*						data);
+
+void			mkm_data_add_row(
+					mkm_data*						data,
+					mkm_data_row*					row);
 
 #endif /* __MKM_DATA_H__ */

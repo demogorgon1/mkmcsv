@@ -212,6 +212,56 @@ mkm_config_parse_columns(
 	}
 }
 
+static void
+mkm_config_parse_sort(
+	mkm_config*						config,
+	const char*						string)
+{
+	char temp[1024];
+	mkm_strcpy(temp, string, sizeof(temp));
+
+	char* p = temp;
+	mkm_config_sort_column* last_sort_column = NULL;
+
+	for(;;)
+	{
+		size_t token_length = 0;
+		while (p[token_length] != '+' && p[token_length] != '\0')
+			token_length++;
+
+		mkm_bool end_of_line = p[token_length] == '\0';
+
+		p[token_length] = '\0';
+
+		int32_t order = 1;
+		if(*p == '-')
+		{
+			order = -1;
+			p++;
+			token_length--;
+		}
+
+		const mkm_config_column_info* info = mkm_config_find_column_info(p);
+
+		mkm_config_sort_column* sort_column = MKM_NEW(mkm_config_sort_column);
+
+		sort_column->column_index = mkm_config_get_column_index_by_name(config, info->name);
+		sort_column->order = order;
+			
+		if (last_sort_column != NULL)
+			last_sort_column->next = sort_column;
+		else
+			config->sort_columns = sort_column;
+
+		last_sort_column = sort_column;
+
+		if (end_of_line)
+			break;
+
+		p += token_length + 1;
+	}
+}
+
 void
 mkm_config_make_dir(
 	const char*			path)
@@ -304,6 +354,12 @@ mkm_config_init(
 				i++;
 				MKM_ERROR_CHECK(i < argc, "Expected columns after --columns.");
 				mkm_config_parse_columns(config, argv[i], MKM_FALSE);
+			}
+			else if(strcmp(arg, "--sort") == 0)
+			{
+				i++;
+				MKM_ERROR_CHECK(i < argc, "Expected columns after --sort.");
+				mkm_config_parse_sort(config, argv[i]);
 			}
 			else if (strcmp(arg, "--cache") == 0)
 			{

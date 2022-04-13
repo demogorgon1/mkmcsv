@@ -55,11 +55,18 @@ typedef struct _mkm_config_input_file
 
 struct _mkm_data;
 
-typedef void (*mkm_input_callback)(
+typedef void (*mkm_config_input_callback)(
 	struct _mkm_data*					data);
 
-typedef void (*mkm_output_callback)(
+typedef void (*mkm_config_output_callback)(
 	struct _mkm_data*					data);
+
+typedef struct _mkm_config_sort_column
+{
+	uint32_t							column_index;
+	int32_t								order;
+	struct _mkm_config_sort_column*		next;
+} mkm_config_sort_column;
 
 typedef struct _mkm_config
 {
@@ -68,8 +75,9 @@ typedef struct _mkm_config
 	mkm_config_input_file*				input_files;
 	mkm_config_column*					columns;
 	size_t								num_columns;
-	mkm_input_callback					input_callback;
-	mkm_output_callback					output_callback;
+	mkm_config_sort_column*				sort_columns;
+	mkm_config_input_callback			input_callback;
+	mkm_config_output_callback			output_callback;
 	FILE*								output_stream;
 } mkm_config;
 

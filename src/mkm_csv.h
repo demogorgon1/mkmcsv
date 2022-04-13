@@ -13,6 +13,7 @@ enum mkm_csv_column
 	MKM_CSV_COLUMN_IS_SIGNED,
 	MKM_CSV_COLUMN_IS_ALTERED,
 	MKM_CSV_COLUMN_IS_PLAYSET,
+	MKM_CSV_COLUMN_GROUP_COUNT,
 
 	MKM_CSV_COLUMN_UNUSED,
 
@@ -21,7 +22,7 @@ enum mkm_csv_column
 
 typedef struct _mkm_csv_row
 {
-	uint8_t					flags;
+	uint32_t				flags;
 	uint32_t				columns[NUM_MKM_CSV_COLUMNS];
 	struct _mkm_csv_row*	next;
 } mkm_csv_row;
@@ -38,6 +39,6 @@ void		mkm_csv_destroy(
 				mkm_csv*			csv);
 mkm_bool	mkm_csv_row_has_column(
 				const mkm_csv_row*	row,
-				uint8_t				index);
+				uint32_t			index);
 
 #endif /* __MKM_CSV_H__ */
