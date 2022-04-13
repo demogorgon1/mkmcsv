@@ -4,6 +4,6 @@
 #include "mkm_base.h"
 
 int32_t	mkm_price_parse(
-				const char*		string);
+			const char*		string);
 
 #endif /* __MKM_PRICE_H__ */

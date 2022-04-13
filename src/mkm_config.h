@@ -7,7 +7,8 @@
 
 #include "mkm_base.h"
 
-#define	MKM_CONFIG_VERBOSE	0x00000001
+#define	MKM_CONFIG_VERBOSE						0x00000001
+#define MKM_CONFIG_CLOSE_OUTPUT_STREAM_ON_EXIT	0x00000002
 
 typedef enum _mkm_config_column_type
 {
@@ -39,6 +40,7 @@ typedef struct _mkm_config_column_info
 	const char*							name;
 	mkm_config_column_type				type;
 	sfc_card_string						card_string;
+	mkm_bool							card_string_is_price;
 	uint8_t								csv_column;
 } mkm_config_column_info;
 

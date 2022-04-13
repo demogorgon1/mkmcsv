@@ -18,6 +18,7 @@ mkm_price_parse(
 	int64_t before_period_value = 0;
 	int64_t after_period_value = 0;
 	mkm_bool before_period = MKM_TRUE;
+	size_t num_decimals_after_period = 0;
 
 	while(*p != '\0')
 	{
@@ -31,7 +32,11 @@ mkm_price_parse(
 			if(before_period)
 				before_period_value = (before_period_value * 10) + (int64_t)(*p - '0');
 			else 
+			{
 				after_period_value = (after_period_value * 10) + (int64_t)(*p - '0');
+
+				num_decimals_after_period++;
+			}
 		}
 		else
 		{
@@ -40,6 +45,9 @@ mkm_price_parse(
 
 		p++;
 	}
+
+	if(num_decimals_after_period == 1)
+		after_period_value *= 10;
 
 	MKM_ERROR_CHECK(after_period_value <= 99, "Invalid price: Too many decimals.");
 

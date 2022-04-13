@@ -152,7 +152,7 @@ mkm_csv_create_from_file(
 				row->columns[e] = mkm_csv_column_to_uint32(line.columns[i], e);
 			}
 		}
-
+		
 		line_num++;
 	}
 

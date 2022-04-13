@@ -20,97 +20,98 @@
 #include "mkm_input_shipments.h"
 #include "mkm_output_csv.h"
 #include "mkm_output_text.h"
+#include "mkm_tokenize.h"
 
 static mkm_config_column_info g_mkm_config_column_info[] =
 {
-	{ "cardmarket_id", MKM_CONFIG_COLUMN_TYPE_CSV, 0, MKM_CSV_COLUMN_ID_PRODUCT										},
-	{ "price", MKM_CONFIG_COLUMN_TYPE_CSV, 0, MKM_CSV_COLUMN_PRICE													},
-	{ "csv_language", MKM_CONFIG_COLUMN_TYPE_CSV, 0, MKM_CSV_COLUMN_ID_LANGUAGE										},
-	{ "condition", MKM_CONFIG_COLUMN_TYPE_CSV, 0, MKM_CSV_COLUMN_CONDITION											},
-	{ "is_foil", MKM_CONFIG_COLUMN_TYPE_CSV, 0, MKM_CSV_COLUMN_IS_FOIL												},
-	{ "is_signed", MKM_CONFIG_COLUMN_TYPE_CSV, 0, MKM_CSV_COLUMN_IS_SIGNED											},
-	{ "is_altered", MKM_CONFIG_COLUMN_TYPE_CSV, 0, MKM_CSV_COLUMN_IS_ALTERED										},
-	{ "purchase_id", MKM_CONFIG_COLUMN_TYPE_SHIPMENT_PURCHASE_ID, 0, 0												},
-	{ "shipping_cost", MKM_CONFIG_COLUMN_TYPE_SHIPMENT_SHIPPING_COST, 0, 0											},
-	{ "purchase_date", MKM_CONFIG_COLUMN_TYPE_SHIPMENT_PURCHASE_DATE, 0, 0											},
-	{ "trustee_fee", MKM_CONFIG_COLUMN_TYPE_SHIPMENT_TRUSTEE_FEE, 0, 0												},
-	{ "tcgplayer_id", MKM_CONFIG_COLUMN_TYPE_SFC_TCGPLAYER_ID, 0, 0													},
-	{ "collector_number", MKM_CONFIG_COLUMN_TYPE_SFC_COLLECTOR_NUMBER, 0, 0											},
-	{ "color_is_red", MKM_CONFIG_COLUMN_TYPE_SFC_COLOR_IS_RED, 0, 0													},
-	{ "color_is_blue", MKM_CONFIG_COLUMN_TYPE_SFC_COLOR_IS_BLUE, 0, 0												},
-	{ "color_is_green", MKM_CONFIG_COLUMN_TYPE_SFC_COLOR_IS_GREEN, 0, 0												},
-	{ "color_is_black", MKM_CONFIG_COLUMN_TYPE_SFC_COLOR_IS_BLACK, 0, 0												},
-	{ "color_is_white", MKM_CONFIG_COLUMN_TYPE_SFC_COLOR_IS_WHITE, 0, 0												},
-	{ "color_identity_is_red", MKM_CONFIG_COLUMN_TYPE_SFC_COLOR_IDENTITY_IS_RED, 0, 0								},
-	{ "color_identity_is_blue", MKM_CONFIG_COLUMN_TYPE_SFC_COLOR_IDENTITY_IS_BLUE, 0, 0								},
-	{ "color_identity_is_green", MKM_CONFIG_COLUMN_TYPE_SFC_COLOR_IDENTITY_IS_GREEN, 0, 0							},
-	{ "color_identity_is_black", MKM_CONFIG_COLUMN_TYPE_SFC_COLOR_IDENTITY_IS_BLACK, 0, 0							},
-	{ "color_identity_is_white", MKM_CONFIG_COLUMN_TYPE_SFC_COLOR_IDENTITY_IS_WHITE, 0, 0							},
-	{ "name", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_NAME, 0											},
-	{ "set", MKM_CONFIG_COLUMN_TYPE_SFC_SET, 0, 0																	},
-	{ "version", MKM_CONFIG_COLUMN_TYPE_SFC_VERSION, 0, 0															},
-	{ "released_at", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_RELEASED_AT, 0								},
-	{ "rarity", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_RARITY, 0										},
-	{ "language", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_LANGUAGE, 0									},
-	{ "scryfall_id", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_SCRYFALL_ID, 0								},
-	{ "layout", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_LAYOUT, 0										},
-	{ "mana_cost", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_MANA_COST, 0									},
-	{ "string_cmc", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_CMC, 0										},
-	{ "type_line", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_TYPE_LINE, 0									},
-	{ "oracle_text", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_ORACLE_TEXT, 0								},
-	{ "reserved", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_RESERVED, 0									},
-	{ "foil", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_FOIL, 0											},
-	{ "nonfoil", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_NONFOIL, 0										},
-	{ "oversized", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_OVERSIZED, 0									},
-	{ "promo", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_PROMO, 0											},
-	{ "reprint", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_REPRINT, 0										},
-	{ "variation", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_VARIATION, 0									},
-	{ "set_name", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_SET_NAME, 0									},
-	{ "set_type", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_SET_TYPE, 0									},
-	{ "digital", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_DIGITAL, 0										},
-	{ "flavor_text", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_FLAVOR_TEXT, 0								},
-	{ "artist", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_ARTIST, 0										},
-	{ "back_id", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_BACK_ID, 0										},
-	{ "illustration_id", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_ILLUSTRATION_ID, 0						},
-	{ "border_color", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_BORDER_COLOR, 0							},
-	{ "frame", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_FRAME, 0											},
-	{ "full_art", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_FULL_ART, 0									},
-	{ "textless", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_TEXTLESS, 0									},
-	{ "booster", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_BOOSTER, 0										},
-	{ "power", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_POWER, 0											},
-	{ "toughness", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_TOUGHNESS, 0									},
-	{ "image_uri_small", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_IMAGE_URI_SMALL, 0						},
-	{ "image_uri_normal", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_IMAGE_URI_NORMAL, 0					},
-	{ "image_uri_large", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_IMAGE_URI_LARGE, 0						},
-	{ "image_uri_png", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_IMAGE_URI_PNG, 0							},
-	{ "image_uri_art_crop", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_IMAGE_URI_ART_CROP, 0				},
-	{ "image_uri_border_crop", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_IMAGE_URI_BORDER_CROP, 0			},
-	{ "recent_price_usd", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_PRICE_USD, 0							},
-	{ "recent_price_usd_foil", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_PRICE_USD_FOIL, 0					},
-	{ "recent_price_usd_etched", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_PRICE_USD_ETCHED, 0				},
-	{ "recent_price_eur", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_PRICE_EUR, 0							},
-	{ "recent_price_eur_foil", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_PRICE_EUR_FOIL, 0					},
-	{ "recent_price_tix", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_PRICE_TIX, 0							},
-	{ "legality_standard", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_LEGALITY_STANDARD, 0					},
-	{ "legality_future", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_LEGALITY_FUTURE, 0						},
-	{ "legality_historic", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_LEGALITY_HISTORIC, 0					},
-	{ "legality_gladiator", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_LEGALITY_GLADIATOR, 0				},
-	{ "legality_pioneer", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_LEGALITY_PIONEER, 0					},
-	{ "legality_modern", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_LEGALITY_MODERN, 0						},
-	{ "legality_legacy", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_LEGALITY_LEGACY, 0						},
-	{ "legality_pauper", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_LEGALITY_PAUPER, 0						},
-	{ "legality_vintage", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_LEGALITY_VINTAGE, 0					},
-	{ "legality_penny", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_LEGALITY_PENNY, 0						},
-	{ "legality_commander", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_LEGALITY_COMMANDER, 0				},
-	{ "legality_brawl", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_LEGALITY_BRAWL, 0						},
-	{ "legality_historicbrawl", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_LEGALITY_HISTORICBRAWL, 0		},
-	{ "legality_alchemy", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_LEGALITY_ALCHEMY, 0					},
-	{ "legality_paupercommander", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_LEGALITY_PAUPERCOMMANDER, 0	},
-	{ "legality_duel", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_LEGALITY_DUEL, 0							},
-	{ "legality_oldschool", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_LEGALITY_OLDSCHOOL, 0				},
-	{ "legality_premodern", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_LEGALITY_PREMODERN, 0				},
+	{ "cardmarket_id", MKM_CONFIG_COLUMN_TYPE_CSV, 0, MKM_FALSE, MKM_CSV_COLUMN_ID_PRODUCT									},
+	{ "price", MKM_CONFIG_COLUMN_TYPE_CSV, 0, MKM_FALSE, MKM_CSV_COLUMN_PRICE												},
+	{ "csv_language", MKM_CONFIG_COLUMN_TYPE_CSV, 0, MKM_FALSE, MKM_CSV_COLUMN_ID_LANGUAGE									},
+	{ "condition", MKM_CONFIG_COLUMN_TYPE_CSV, 0, MKM_FALSE, MKM_CSV_COLUMN_CONDITION										},
+	{ "is_foil", MKM_CONFIG_COLUMN_TYPE_CSV, 0, MKM_FALSE, MKM_CSV_COLUMN_IS_FOIL											},
+	{ "is_signed", MKM_CONFIG_COLUMN_TYPE_CSV, 0, MKM_FALSE, MKM_CSV_COLUMN_IS_SIGNED										},
+	{ "is_altered", MKM_CONFIG_COLUMN_TYPE_CSV, 0, MKM_FALSE, MKM_CSV_COLUMN_IS_ALTERED										},
+	{ "purchase_id", MKM_CONFIG_COLUMN_TYPE_SHIPMENT_PURCHASE_ID, 0, MKM_FALSE, 0											},
+	{ "shipping_cost", MKM_CONFIG_COLUMN_TYPE_SHIPMENT_SHIPPING_COST, 0, MKM_FALSE, 0										},
+	{ "purchase_date", MKM_CONFIG_COLUMN_TYPE_SHIPMENT_PURCHASE_DATE, 0, MKM_FALSE, 0										},
+	{ "trustee_fee", MKM_CONFIG_COLUMN_TYPE_SHIPMENT_TRUSTEE_FEE, 0, MKM_FALSE, 0											},
+	{ "tcgplayer_id", MKM_CONFIG_COLUMN_TYPE_SFC_TCGPLAYER_ID, 0, MKM_FALSE, 0												},
+	{ "collector_number", MKM_CONFIG_COLUMN_TYPE_SFC_COLLECTOR_NUMBER, 0, MKM_FALSE, 0										},
+	{ "color_is_red", MKM_CONFIG_COLUMN_TYPE_SFC_COLOR_IS_RED, 0, MKM_FALSE, 0												},
+	{ "color_is_blue", MKM_CONFIG_COLUMN_TYPE_SFC_COLOR_IS_BLUE, 0, MKM_FALSE, 0											},
+	{ "color_is_green", MKM_CONFIG_COLUMN_TYPE_SFC_COLOR_IS_GREEN, 0, MKM_FALSE, 0											},
+	{ "color_is_black", MKM_CONFIG_COLUMN_TYPE_SFC_COLOR_IS_BLACK, 0, MKM_FALSE, 0											},
+	{ "color_is_white", MKM_CONFIG_COLUMN_TYPE_SFC_COLOR_IS_WHITE, 0, MKM_FALSE, 0											},
+	{ "color_identity_is_red", MKM_CONFIG_COLUMN_TYPE_SFC_COLOR_IDENTITY_IS_RED, 0, MKM_FALSE, 0							},
+	{ "color_identity_is_blue", MKM_CONFIG_COLUMN_TYPE_SFC_COLOR_IDENTITY_IS_BLUE, 0, MKM_FALSE, 0							},
+	{ "color_identity_is_green", MKM_CONFIG_COLUMN_TYPE_SFC_COLOR_IDENTITY_IS_GREEN, 0, MKM_FALSE, 0						},
+	{ "color_identity_is_black", MKM_CONFIG_COLUMN_TYPE_SFC_COLOR_IDENTITY_IS_BLACK, 0, MKM_FALSE, 0						},
+	{ "color_identity_is_white", MKM_CONFIG_COLUMN_TYPE_SFC_COLOR_IDENTITY_IS_WHITE, 0, MKM_FALSE, 0						},
+	{ "name", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_NAME, MKM_FALSE, 0											},
+	{ "set", MKM_CONFIG_COLUMN_TYPE_SFC_SET, 0, MKM_FALSE, 0																},
+	{ "version", MKM_CONFIG_COLUMN_TYPE_SFC_VERSION, 0, MKM_FALSE, 0														},
+	{ "released_at", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_RELEASED_AT, MKM_FALSE, 0							},
+	{ "rarity", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_RARITY, MKM_FALSE, 0										},
+	{ "language", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_LANGUAGE, MKM_FALSE, 0									},
+	{ "scryfall_id", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_SCRYFALL_ID, MKM_FALSE, 0							},
+	{ "layout", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_LAYOUT, MKM_FALSE, 0										},
+	{ "mana_cost", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_MANA_COST, MKM_FALSE, 0								},
+	{ "string_cmc", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_CMC, MKM_FALSE, 0									},
+	{ "type_line", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_TYPE_LINE, MKM_FALSE, 0								},
+	{ "oracle_text", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_ORACLE_TEXT, MKM_FALSE, 0							},
+	{ "reserved", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_RESERVED, MKM_FALSE, 0									},
+	{ "foil", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_FOIL, MKM_FALSE, 0											},
+	{ "nonfoil", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_NONFOIL, MKM_FALSE, 0									},
+	{ "oversized", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_OVERSIZED, MKM_FALSE, 0								},
+	{ "promo", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_PROMO, MKM_FALSE, 0										},
+	{ "reprint", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_REPRINT, MKM_FALSE, 0									},
+	{ "variation", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_VARIATION, MKM_FALSE, 0								},
+	{ "set_name", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_SET_NAME, MKM_FALSE, 0									},
+	{ "set_type", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_SET_TYPE, MKM_FALSE, 0									},
+	{ "digital", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_DIGITAL, MKM_FALSE, 0									},
+	{ "flavor_text", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_FLAVOR_TEXT, MKM_FALSE, 0							},
+	{ "artist", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_ARTIST, MKM_FALSE, 0										},
+	{ "back_id", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_BACK_ID, MKM_FALSE, 0									},
+	{ "illustration_id", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_ILLUSTRATION_ID, MKM_FALSE, 0					},
+	{ "border_color", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_BORDER_COLOR, MKM_FALSE, 0							},
+	{ "frame", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_FRAME, MKM_FALSE, 0										},
+	{ "full_art", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_FULL_ART, MKM_FALSE, 0									},
+	{ "textless", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_TEXTLESS, MKM_FALSE, 0									},
+	{ "booster", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_BOOSTER, MKM_FALSE, 0									},
+	{ "power", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_POWER, MKM_FALSE, 0										},
+	{ "toughness", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_TOUGHNESS, MKM_FALSE, 0								},
+	{ "image_uri_small", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_IMAGE_URI_SMALL, MKM_FALSE, 0					},
+	{ "image_uri_normal", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_IMAGE_URI_NORMAL, MKM_FALSE, 0					},
+	{ "image_uri_large", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_IMAGE_URI_LARGE, MKM_FALSE, 0					},
+	{ "image_uri_png", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_IMAGE_URI_PNG, MKM_FALSE, 0						},
+	{ "image_uri_art_crop", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_IMAGE_URI_ART_CROP, MKM_FALSE, 0				},
+	{ "image_uri_border_crop", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_IMAGE_URI_BORDER_CROP, MKM_FALSE, 0		},
+	{ "recent_price_usd", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_PRICE_USD, MKM_TRUE, 0							},
+	{ "recent_price_usd_foil", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_PRICE_USD_FOIL, MKM_TRUE, 0				},
+	{ "recent_price_usd_etched", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_PRICE_USD_ETCHED, MKM_TRUE, 0			},
+	{ "recent_price_eur", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_PRICE_EUR, MKM_TRUE, 0							},
+	{ "recent_price_eur_foil", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_PRICE_EUR_FOIL, MKM_TRUE, 0				},
+	{ "recent_price_tix", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_PRICE_TIX, MKM_FALSE, 0						},
+	{ "legality_standard", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_LEGALITY_STANDARD, MKM_FALSE, 0				},
+	{ "legality_future", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_LEGALITY_FUTURE, MKM_FALSE, 0					},
+	{ "legality_historic", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_LEGALITY_HISTORIC, MKM_FALSE, 0				},
+	{ "legality_gladiator", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_LEGALITY_GLADIATOR, MKM_FALSE, 0				},
+	{ "legality_pioneer", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_LEGALITY_PIONEER, MKM_FALSE, 0					},
+	{ "legality_modern", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_LEGALITY_MODERN, MKM_FALSE, 0					},
+	{ "legality_legacy", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_LEGALITY_LEGACY, MKM_FALSE, 0					},
+	{ "legality_pauper", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_LEGALITY_PAUPER, MKM_FALSE, 0					},
+	{ "legality_vintage", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_LEGALITY_VINTAGE, MKM_FALSE, 0					},
+	{ "legality_penny", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_LEGALITY_PENNY, MKM_FALSE, 0						},
+	{ "legality_commander", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_LEGALITY_COMMANDER, MKM_FALSE, 0				},
+	{ "legality_brawl", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_LEGALITY_BRAWL, MKM_FALSE, 0						},
+	{ "legality_historicbrawl", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_LEGALITY_HISTORICBRAWL, MKM_FALSE, 0		},
+	{ "legality_alchemy", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_LEGALITY_ALCHEMY, MKM_FALSE, 0					},
+	{ "legality_paupercommander", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_LEGALITY_PAUPERCOMMANDER, MKM_FALSE, 0	},
+	{ "legality_duel", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_LEGALITY_DUEL, MKM_FALSE, 0						},
+	{ "legality_oldschool", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_LEGALITY_OLDSCHOOL, MKM_FALSE, 0				},
+	{ "legality_premodern", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, SFC_CARD_STRING_LEGALITY_PREMODERN, MKM_FALSE, 0				},
 
-	{ NULL, 0, 0, 0																									}
+	{ NULL, 0, 0, MKM_FALSE, 0																								}
 };
 
 static void
@@ -147,6 +148,15 @@ mkm_config_help()
 		"\n"
 		"    --verbose\n"
 		"        Enables verbose output.\n"
+		"\n"
+		"    --output_file <path>\n"
+		"        Writes output to specified file instead of stdout.\n"
+		"\n"
+		"    --config <path>\n"
+		"        Loads options from a text file if it exists. Path defaults to\n"
+		"        '.mkmcsv/config.txt' in your home directory.\n"
+		"        One option per line in the text file, same as the ones on the command-\n"
+		"        line, except without the leading '--'.\n"
 	);
 }
 
@@ -217,6 +227,9 @@ mkm_config_help_shipments()
 		"\n"
 		"ignore_csv\n"
 		"    The CSV file will be ignored even if it exists.\n"
+		"\n"
+		"abort\n"
+		"    Terminates parsing the file. Rest of it is ignored.\n"
 	);
 }
 
@@ -269,6 +282,7 @@ mkm_config_count_hidden_columns(
 static void
 mkm_config_parse_columns(
 	mkm_config*						config,
+	mkm_config_column**				last_column,
 	const char*						string,
 	mkm_bool						hidden)
 {
@@ -276,7 +290,6 @@ mkm_config_parse_columns(
 	mkm_strcpy(temp, string, sizeof(temp));
 
 	char* p = temp;
-	mkm_config_column* last_column = NULL;
 
 	for(;;)
 	{
@@ -298,12 +311,12 @@ mkm_config_parse_columns(
 			column->info = mkm_config_find_column_info(p);
 			column->hidden = hidden;
 			
-			if (last_column != NULL)
-				last_column->next = column;
+			if (*last_column != NULL)
+				(*last_column)->next = column;
 			else
 				config->columns = column;
 
-			last_column = column;
+			*last_column = column;
 
 			config->num_columns++;
 		}
@@ -355,6 +368,8 @@ mkm_config_parse_sort(
 		mkm_config_sort_column* sort_column = MKM_NEW(mkm_config_sort_column);
 
 		sort_column->column_index = mkm_config_get_column_index_by_name(config, info->name);
+		MKM_ERROR_CHECK(sort_column->column_index != UINT32_MAX, "Column not included, so can't be used for sorting: %s", info->name);
+
 		sort_column->order = order;
 			
 		if (last_sort_column != NULL)
@@ -387,8 +402,9 @@ mkm_config_make_dir(
 	#endif
 }
 
-void
-mkm_config_get_default_cache_path(
+static void
+mkm_config_get_default_path(
+	const char*			file,
 	char*				buffer,
 	size_t				buffer_size)
 {
@@ -430,8 +446,151 @@ mkm_config_get_default_cache_path(
 	mkm_config_make_dir(mkm_csv_dir);
 
 	{
-		size_t result = snprintf(buffer, buffer_size, "%s/cache.bin", mkm_csv_dir);
+		size_t result = snprintf(buffer, buffer_size, "%s/%s", mkm_csv_dir, file);
 		MKM_ERROR_CHECK(result <= buffer_size, "Path too long.");
+	}
+}
+
+typedef struct _mkm_config_option 
+{
+	char*						value;
+	mkm_bool					should_free_value;
+	struct _mkm_config_option*	next;
+} mkm_config_option;
+
+typedef struct _mkm_config_option_list
+{
+	mkm_config_option*			head;
+	mkm_config_option*			tail;
+} mkm_config_option_list;
+
+static mkm_bool
+mkm_config_option_list_has_option(
+	const mkm_config_option_list*	option_list,
+	const char*						string)
+{
+	for(const mkm_config_option* option = option_list->head; option != NULL; option = option->next)
+	{
+		if(strcmp(string, option->value) == 0)
+			return MKM_TRUE;
+	}
+
+	return MKM_FALSE;
+}
+
+static void
+mkm_config_option_list_add(
+	mkm_config_option_list*			option_list,
+	char*							value,
+	mkm_bool						should_free_value)
+{
+	mkm_config_option* option = MKM_NEW(mkm_config_option);
+	option->value = value;
+	option->should_free_value = should_free_value;
+
+	if (option_list->tail != NULL)
+		option_list->tail->next = option;
+	else
+		option_list->head = option;
+
+	option_list->tail = option;
+}
+
+static void
+mkm_config_option_list_init(
+	mkm_config_option_list*		option_list,
+	int							argc,
+	char**						argv)
+{
+	if (argc == 1)
+	{
+		/* No arguments, just show help and exit */
+		mkm_config_help();
+		exit(0);
+	}
+
+	memset(option_list, 0, sizeof(mkm_config_option_list));
+
+	char config_path[256];
+	mkm_config_get_default_path("config.txt", config_path, sizeof(config_path));
+
+	/* Add options from command line */
+	for(int i = 1; i < argc; i++)
+	{
+		if(strcmp(argv[i], "--config") == 0)
+		{
+			i++;
+			MKM_ERROR_CHECK(i < argc, "Expected path after --config.");
+			mkm_strcpy(config_path, argv[i], sizeof(config_path));
+		}
+		else
+		{
+			mkm_config_option_list_add(option_list, argv[i], MKM_FALSE);
+		}
+	}
+
+	/* Load config from file if it exists */
+	{
+		FILE* f = fopen(config_path, "r");
+		if(f != NULL)
+		{
+			char line_buffer[1024];
+			while(fgets(line_buffer, sizeof(line_buffer), f) != NULL)
+			{
+				/* Remove comments */
+				{
+					size_t len = strlen(line_buffer);
+					for (size_t i = 0; i < len; i++)
+					{
+						if (line_buffer[i] == ';')
+						{
+							line_buffer[i] = '\0';
+							break;
+						}
+					}
+				}
+
+				/* Parse */
+				mkm_tokenize tokenize;
+				mkm_tokenize_string(&tokenize, line_buffer);
+
+				if(tokenize.num_tokens > 0)
+				{
+					char full_option_name[256];
+					size_t required = (size_t)snprintf(full_option_name, sizeof(full_option_name), "--%s", tokenize.tokens[0]);
+					MKM_ERROR_CHECK(required <= sizeof(full_option_name), "Buffer overflow.");
+
+					/* Only add option from config file if it wasn't already supplied */
+					if(!mkm_config_option_list_has_option(option_list, full_option_name))
+					{
+						mkm_config_option_list_add(option_list, mkm_strdup(full_option_name), MKM_TRUE);
+
+						for(size_t i = 1; i < tokenize.num_tokens; i++)
+							mkm_config_option_list_add(option_list, mkm_strdup(tokenize.tokens[i]), MKM_TRUE);
+					}
+				}
+			}
+
+			fclose(f);
+		}
+	}
+}
+
+static void
+mkm_config_option_list_uninit(
+	mkm_config_option_list*		option_list)
+{
+	mkm_config_option* option = option_list->head;
+	while(option != NULL)
+	{
+		mkm_config_option* next = option->next;
+		
+		if(option->should_free_value)
+			free(option->value);
+
+		free(option);
+
+		option = next;
 	}
 }
 
@@ -439,17 +598,10 @@ mkm_config_get_default_cache_path(
 
 void	
 mkm_config_init(
-	mkm_config*			config,
-	int					argc,
-	char**				argv)
+	mkm_config*					config,
+	int							argc,
+	char**						argv)
 {
-	if(argc == 1)
-	{
-		/* No arguments, just show help and exit */
-		mkm_config_help();
-		exit(0);
-	}
-
 	memset(config, 0, sizeof(mkm_config));
 
 	config->input_callback = mkm_input_csv;
@@ -457,37 +609,50 @@ mkm_config_init(
 
 	config->output_stream = stdout;
 
+	mkm_config_option_list option_list;
+	mkm_config_option_list_init(&option_list, argc, argv);
+
+	/* Apply options */
 	mkm_config_input_file* last_input_file = NULL;
+	mkm_config_column* last_column = NULL;
 
-	for(int i = 1; i < argc; i++)
+	for(const mkm_config_option* option = option_list.head; option != NULL; option = option->next)
 	{
-		const char* arg = argv[i];
-
-		if(arg[0] == '-')
+		if(option->value[0] == '-')
 		{
-			if(strcmp(arg, "--columns") == 0)
+			if(strcmp(option->value, "--output_file") == 0)
 			{
-				i++;
-				MKM_ERROR_CHECK(i < argc, "Expected columns after --columns.");
-				mkm_config_parse_columns(config, argv[i], MKM_FALSE);
+				option = option->next;
+				MKM_ERROR_CHECK(option != NULL, "Expected path after --output_file.");
+
+				config->output_stream = fopen(option->value, "w");
+				MKM_ERROR_CHECK(config->output_stream != NULL, "Failed to open file for output: %s", option->value);
+
+				config->flags |= MKM_CONFIG_CLOSE_OUTPUT_STREAM_ON_EXIT;
 			}
-			else if(strcmp(arg, "--sort") == 0)
+			else if(strcmp(option->value, "--columns") == 0)
 			{
-				i++;
-				MKM_ERROR_CHECK(i < argc, "Expected columns after --sort.");
-				mkm_config_parse_sort(config, argv[i]);
+				option = option->next;
+				MKM_ERROR_CHECK(option != NULL, "Expected columns after --columns.");
+				mkm_config_parse_columns(config, &last_column, option->value, MKM_FALSE);
 			}
-			else if (strcmp(arg, "--cache") == 0)
+			else if(strcmp(option->value, "--sort") == 0)
 			{
-				i++;
-				MKM_ERROR_CHECK(i < argc, "Expected path after --cache.");
-				mkm_strcpy(config->cache_file, argv[i], sizeof(config->cache_file));
+				option = option->next;
+				MKM_ERROR_CHECK(option != NULL, "Expected columns after --sort.");
+				mkm_config_parse_sort(config, option->value);
 			}
-			else if(strcmp(arg, "--input") == 0)
+			else if (strcmp(option->value, "--cache") == 0)
 			{
-				i++;
-				MKM_ERROR_CHECK(i < argc, "Expected input type after --input.");
-				char* input_type = argv[i];
+				option = option->next;
+				MKM_ERROR_CHECK(option != NULL, "Expected path after --cache.");
+				mkm_strcpy(config->cache_file, option->value, sizeof(config->cache_file));
+			}
+			else if(strcmp(option->value, "--input") == 0)
+			{
+				option = option->next;
+				MKM_ERROR_CHECK(option != NULL, "Expected input type after --input.");
+				const char* input_type = option->value;
 				if(strcmp(input_type, "csv") == 0)
 				{
 					config->input_callback = mkm_input_csv;
@@ -497,18 +662,18 @@ mkm_config_init(
 					config->input_callback = mkm_input_shipments;
 
 					/* Add required columns for processing shipments */
-					mkm_config_parse_columns(config, "name+set+collector_number+version+condition+price+shipping_cost+trustee_fee", MKM_TRUE);
+					mkm_config_parse_columns(config, &last_column, "name+set+collector_number+version+condition+price+shipping_cost+trustee_fee", MKM_TRUE);
 				}
 				else
 				{
 					mkm_error("Invalid input type: %s", input_type);
 				}
 			}
-			else if (strcmp(arg, "--output") == 0)
+			else if (strcmp(option->value, "--output") == 0)
 			{
-				i++;
-				MKM_ERROR_CHECK(i < argc, "Expected output type after --output.");
-				char* output_type = argv[i];
+				option = option->next;
+				MKM_ERROR_CHECK(option != NULL, "Expected output type after --output.");
+				const char* output_type = option->value;
 				if (strcmp(output_type, "text") == 0)
 					config->output_callback = mkm_output_text;
 				else if(strcmp(output_type, "csv") == 0)
@@ -516,15 +681,15 @@ mkm_config_init(
 				else
 					mkm_error("Invalid output type: %s", output_type);
 			}
-			else if(strcmp(arg, "--verbose") == 0)
+			else if(strcmp(option->value, "--verbose") == 0)
 			{
 				config->flags |= MKM_CONFIG_VERBOSE;
 			}
-			else if(strcmp(arg, "--help") == 0)
+			else if(strcmp(option->value, "--help") == 0)
 			{
-				if (i + 1 < argc && strcmp(argv[i + 1], "columns") == 0)
+				if (option->next != NULL && strcmp(option->next->value, "columns") == 0)
 					mkm_config_help_columns();
-				else if (i + 1 < argc && strcmp(argv[i + 1], "shipments") == 0)
+				else if (option->next != NULL && strcmp(option->next->value, "shipments") == 0)
 					mkm_config_help_shipments();
 				else
 					mkm_config_help();
@@ -533,7 +698,7 @@ mkm_config_init(
 			}
 			else
 			{
-				mkm_error("Invalid command-line argument: %s", arg);
+				mkm_error("Invalid option: %s", option->value);
 			}
 		}
 		else
@@ -541,7 +706,7 @@ mkm_config_init(
 			/* Add input file */
 			mkm_config_input_file* input_file = MKM_NEW(mkm_config_input_file);
 
-			input_file->path = arg;
+			input_file->path = option->value;
 
 			if(last_input_file != NULL)
 				last_input_file->next = input_file;
@@ -555,20 +720,35 @@ mkm_config_init(
 	if(config->num_columns == mkm_config_count_hidden_columns(config))
 	{
 		/* All columns are hidden, add default columns ones */
-		mkm_config_parse_columns(config, "name+version+set+condition+price", MKM_FALSE);
+		mkm_config_parse_columns(config, &last_column, "name+version+set+condition+price", MKM_FALSE);
 	}
 
 	if(config->cache_file[0] == '\0')
 	{
 		/* No cache file specified, determine default path */
-		mkm_config_get_default_cache_path(config->cache_file, sizeof(config->cache_file));
+		mkm_config_get_default_path("cache.bin", config->cache_file, sizeof(config->cache_file));
 	}
+
+	if(config->flags & MKM_CONFIG_VERBOSE)
+	{
+		for(const mkm_config_column* column = config->columns; column != NULL; column = column->next)
+		{
+			printf("Columm: %s %s\n", column->info->name, column->hidden ? "(hidden)" : "");
+		}
+	}
+
+	mkm_config_option_list_uninit(&option_list);
 }
 
 void	
 mkm_config_uninit(
 	mkm_config*			config)
 {
+	if(config->flags & MKM_CONFIG_CLOSE_OUTPUT_STREAM_ON_EXIT)
+	{
+		fclose(config->output_stream);
+	}
+
 	/* Free input files */
 	{
 		mkm_config_input_file* input_file = config->input_files;

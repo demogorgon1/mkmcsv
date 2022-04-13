@@ -34,6 +34,17 @@ mkm_strcpy(
 	memcpy(destination, source, source_size);
 }
 
+static char*
+mkm_strdup(
+	const char*		source)
+{
+	size_t source_size = strlen(source) + 1;
+	char* p = (char*)malloc(source_size);
+	assert(p != NULL);
+	memcpy(p, source, source_size);
+	return p;
+}
+
 #define MKM_NEW(_type) ((_type*)mkm_zalloc(sizeof(_type)))
 #define MKM_UNUSED(_x) ((void)_x)
 

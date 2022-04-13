@@ -6,6 +6,7 @@
 #include "mkm_csv.h"
 #include "mkm_data.h"
 #include "mkm_error.h"
+#include "mkm_price.h"
 
 static void
 mkm_data_row_debug_print(
@@ -301,14 +302,14 @@ mkm_data_process_csv(
 
 					/* Add it to binary search tree for sorting */
 					mkm_data_add_row(data, row);
+
+					row_index++;
 				}
 			}
 		}
 
 		/* Clean up query */
 		sfc_query_delete(query);
-
-		row_index++;
 	}
 }
 
@@ -424,8 +425,21 @@ mkm_data_process_column(
 		mkm_data_set_column_uint32(data, SFC_COLLECTOR_NUMBER_VERSION(card->key.collector_number));
 		break;
 
-	case MKM_CONFIG_COLUMN_TYPE_SFC_STRING:					
-		mkm_data_set_column_string(data, sfc_card_get_string(card, config->info->card_string));
+	case MKM_CONFIG_COLUMN_TYPE_SFC_STRING:			
+		{
+			const char* string = sfc_card_get_string(card, config->info->card_string);
+			if (config->info->card_string_is_price)
+			{
+				if(strcmp(string, "null") == 0)
+					mkm_data_set_column_price(data, 0);
+				else
+					mkm_data_set_column_price(data, mkm_price_parse(string));
+			}
+			else
+			{
+				mkm_data_set_column_string(data, string);
+			}
+		}
 		break;
 
 	default:
@@ -442,10 +456,27 @@ mkm_data_row_array_init(
 
 	if(csv != NULL)
 	{
-		row_array->num_rows = csv->num_rows;
-		row_array->rows = (mkm_data_row**)malloc(sizeof(mkm_data_row*) * csv->num_rows);
+		for(const mkm_csv_row* csv_row = csv->rows; csv_row != NULL; csv_row = csv_row->next)
+		{
+			size_t produced_rows = 1;
+
+			if(mkm_csv_row_has_column(csv_row, MKM_CSV_COLUMN_IS_PLAYSET) &&
+				csv_row->columns[MKM_CSV_COLUMN_IS_PLAYSET] != 0)
+			{
+				produced_rows = 4;
+			}
+
+			if(mkm_csv_row_has_column(csv_row, MKM_CSV_COLUMN_GROUP_COUNT))
+			{
+				produced_rows *= csv_row->columns[MKM_CSV_COLUMN_GROUP_COUNT];
+			}
+
+			row_array->num_rows += produced_rows;
+		}
+
+		row_array->rows = (mkm_data_row**)malloc(sizeof(mkm_data_row*) * row_array->num_rows);
 		assert(row_array->rows != NULL);
-		memset(row_array->rows, 0, sizeof(mkm_data_row*) * csv->num_rows);
+		memset(row_array->rows, 0, sizeof(mkm_data_row*) * row_array->num_rows);
 	}
 }
 

@@ -200,6 +200,7 @@ mkm_input_shipments_adjust_shipping_costs_and_trustee_fees(
 	for(size_t i = 0; i < data_row_array->num_rows; i++)
 	{
 		mkm_data_row* row = data_row_array->rows[i];
+
 		if(row == NULL || row->removed)
 			continue;
 
