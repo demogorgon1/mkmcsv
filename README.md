@@ -1,5 +1,5 @@
 # mkmcsv
-<---
+<!---
 [![CMake](https://github.com/demogorgon1/mkmcsv/actions/workflows/cmake.yml/badge.svg)](https://github.com/demogorgon1/mkmcsv/actions/workflows/cmake.yml)
 -->
 
