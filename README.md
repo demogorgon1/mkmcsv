@@ -9,6 +9,6 @@ Several output modes are supported:
 - Text: An easy-to-read text table.
 - SQL: You can feed this directly into the SQL database you're using to manage your Magic cards. (Not implemented yet.)
 
-In addition to processing CSV files, mkmcsv can also read higher level shipment lists you can write to provide more information about your purchases, like shipping costs, trustee fees, and refunds. You can also use shipment lists to describe purchases from outside Cardmarket.
+In addition to processing CSV files, mkmcsv can also read higher level shipment lists written by you to provide more information about your purchases, like shipping costs, trustee fees, and refunds. You can also use shipment lists to describe purchases from outside Cardmarket. The goal is to make the process of managing your new purchases as easy and steamlined as possible.
 
 Information about cards are acquired through the public Scryfall API using the [scryfallcache](https://github.com/demogorgon1/scryfallcache) library.
