@@ -10,6 +10,7 @@ typedef struct _mkm_shipment_modification
 	sfc_card_key						card_key;
 	uint32_t							condition;
 	int32_t								price;
+	uint32_t							extra_row_number;
 	struct _mkm_shipment_modification*	next;
 } mkm_shipment_modification;
 
@@ -34,6 +35,8 @@ typedef struct _mkm_shipment
 
 	char								csv_path[256];
 	struct _mkm_csv*					csv;
+
+	uint32_t							next_extra_row_number;
 
 	struct _mkm_shipment*				next;
 } mkm_shipment;

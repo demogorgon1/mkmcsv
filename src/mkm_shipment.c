@@ -6,7 +6,8 @@ mkm_shipment_modification_list_add(
 	mkm_shipment_modification_list*	list,
 	const sfc_card_key*				card_key,
 	uint32_t						condition,
-	int32_t							price)
+	int32_t							price,
+	uint32_t						extra_row_number)
 {
 	mkm_shipment_modification* modification = MKM_NEW(mkm_shipment_modification);
 
@@ -20,6 +21,7 @@ mkm_shipment_modification_list_add(
 	memcpy(&modification->card_key, card_key, sizeof(sfc_card_key));
 	modification->condition = condition;
 	modification->price = price;
+	modification->extra_row_number = extra_row_number;
 }
 
 static void
@@ -63,7 +65,7 @@ mkm_shipment_add(
 	uint32_t						condition,
 	int32_t							price)
 {
-	mkm_shipment_modification_list_add(&shipment->additions, card_key, condition, price);
+	mkm_shipment_modification_list_add(&shipment->additions, card_key, condition, price, shipment->next_extra_row_number++);
 }
 
 void			
@@ -73,5 +75,5 @@ mkm_shipment_remove(
 	uint32_t						condition,
 	int32_t							price)
 {
-	mkm_shipment_modification_list_add(&shipment->removals, card_key, condition, price);
+	mkm_shipment_modification_list_add(&shipment->removals, card_key, condition, price, 0);
 }

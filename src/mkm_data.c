@@ -369,6 +369,20 @@ mkm_data_process_column(
 		mkm_data_set_column_price(data, shipment_info->trustee_fee);
 		break;
 
+	case MKM_CONFIG_COLUMN_TYPE_SHIPMENT_UNIQUE_ID:
+		MKM_ERROR_CHECK(shipment_info != NULL, "No shipment information available.");
+		{
+			/* purchase_id-<row #> uniquely identifies a purchased card */
+			char temp[256];
+			size_t required = (size_t)snprintf(temp, sizeof(temp), "%X-%u",
+				shipment_info->id,
+				csv_row->columns[MKM_CSV_COLUMN_ROW_NUMBER]);
+			MKM_ERROR_CHECK(required <= sizeof(temp), "Buffer overflow.");
+
+			mkm_data_set_column_string(data, temp);
+		}
+		break;
+
 	case MKM_CONFIG_COLUMN_TYPE_SFC_TCGPLAYER_ID:
 		mkm_data_set_column_uint32(data, card->data.tcgplayer_id);
 		break;

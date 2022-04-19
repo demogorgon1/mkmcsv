@@ -81,7 +81,12 @@ mkm_input_shipment_add_row(
 	csv_row.columns[MKM_CSV_COLUMN_ID_PRODUCT] = card->data.cardmarket_id;
 	csv_row.columns[MKM_CSV_COLUMN_PRICE] = modification->price;
 	csv_row.columns[MKM_CSV_COLUMN_CONDITION] = modification->condition;
-		
+
+	if(shipment->csv != NULL)
+		csv_row.columns[MKM_CSV_COLUMN_ROW_NUMBER] = (uint32_t)shipment->csv->num_rows + modification->extra_row_number;
+	else
+		csv_row.columns[MKM_CSV_COLUMN_ROW_NUMBER] = modification->extra_row_number;
+
 	/* FIXME: this should be made available too, optionally. mkm_csv_row should really be supplied from a higher level */
 	/*csv_row.columns[MKM_CSV_COLUMN_ID_LANGUAGE] =
 	csv_row.columns[MKM_CSV_COLUMN_IS_FOIL] = 

@@ -152,6 +152,10 @@ mkm_csv_create_from_file(
 				row->columns[e] = mkm_csv_column_to_uint32(line.columns[i], e);
 			}
 		}
+
+		/* Add line number as a column */
+		row->flags |= 1 << MKM_CSV_COLUMN_ROW_NUMBER;
+		row->columns[MKM_CSV_COLUMN_ROW_NUMBER] = line_num;
 		
 		line_num++;
 	}

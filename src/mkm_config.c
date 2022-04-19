@@ -35,6 +35,7 @@ static mkm_config_column_info g_mkm_config_column_info[] =
 	{ "shipping_cost", MKM_CONFIG_COLUMN_TYPE_SHIPMENT_SHIPPING_COST, 0, MKM_FALSE, 0										},
 	{ "purchase_date", MKM_CONFIG_COLUMN_TYPE_SHIPMENT_PURCHASE_DATE, 0, MKM_FALSE, 0										},
 	{ "trustee_fee", MKM_CONFIG_COLUMN_TYPE_SHIPMENT_TRUSTEE_FEE, 0, MKM_FALSE, 0											},
+	{ "unique_id", MKM_CONFIG_COLUMN_TYPE_SHIPMENT_UNIQUE_ID, 0, MKM_FALSE, 0												},
 	{ "tcgplayer_id", MKM_CONFIG_COLUMN_TYPE_SFC_TCGPLAYER_ID, 0, MKM_FALSE, 0												},
 	{ "collector_number", MKM_CONFIG_COLUMN_TYPE_SFC_COLLECTOR_NUMBER, 0, MKM_FALSE, 0										},
 	{ "color_is_red", MKM_CONFIG_COLUMN_TYPE_SFC_COLOR_IS_RED, 0, MKM_FALSE, 0												},
