@@ -7,7 +7,7 @@ Several output modes are supported:
 
 - CSV: Similar to the input files exported from Cardmarket, but with whatever additional columns you desire.
 - Text: An easy-to-read text table.
-- SQL: You can feed this directly into the SQL database you're using to manage your Magic cards. (Not implemented yet.)
+- SQL: You can feed this directly into the SQL database you're using to manage your Magic cards. 
 
 In addition to processing CSV files, mkmcsv can also read higher level shipment lists written by you to provide more information about your purchases, like shipping costs, trustee fees, and refunds. You can also use shipment lists to describe purchases from outside Cardmarket. The goal is to make the process of managing your new purchases as easy and steamlined as possible.
 
