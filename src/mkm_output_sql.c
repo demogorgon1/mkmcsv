@@ -25,6 +25,27 @@ mkm_output_sql_is_last_visible_column(
 	return MKM_TRUE;
 }
 
+static void
+mkm_output_sql_string(
+	FILE*						output_stream,
+	const char*					string)
+{
+	fputc('\'', output_stream);
+
+	const char* p = string;
+	while(*p != '\0')
+	{
+		char c = *p;
+
+		if(c != '\'' && c != '\"' && c >= 32 && c < 128)
+			fputc(c, output_stream);
+
+		p++;
+	}
+
+	fputc('\'', output_stream);
+}
+
 /*---------------------------------------------------------------*/
 
 void	
@@ -103,7 +124,7 @@ mkm_output_sql(
 
 				switch (column->type)
 				{
-				case MKM_DATA_COLUMN_TYPE_STRING:	fprintf(data->config->output_stream, "'%s'", column->string_value); break;
+				case MKM_DATA_COLUMN_TYPE_STRING:	mkm_output_sql_string(data->config->output_stream, column->string_value); break;
 				case MKM_DATA_COLUMN_TYPE_UINT32:	fprintf(data->config->output_stream, "%u", column->uint32_value); break;
 				case MKM_DATA_COLUMN_TYPE_PRICE:	fprintf(data->config->output_stream, "%d", column->price_value); break;
 				case MKM_DATA_COLUMN_TYPE_BOOL:		fprintf(data->config->output_stream, "%u", column->bool_value ? 1 : 0); break;

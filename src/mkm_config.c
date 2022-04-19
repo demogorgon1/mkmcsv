@@ -142,6 +142,9 @@ mkm_config_help()
 		"        Specifies the '+' seperated names of columns that should be shown in\n"
 		"        the output. For a list of column names run 'mkmcsv --help columns'.\n"
 		"\n"
+		"    --all_columns\n"
+		"        Include all available columns in output.\n"
+		"\n"
 		"    --sort <list of columns>\n"
 		"        Sort output rows by the list of '+' seperated column names. Prefix\n"
 		"        name with '-' for descending order instead of ascending.\n"
@@ -287,6 +290,42 @@ mkm_config_count_hidden_columns(
 	}
 
 	return count;
+}
+
+static void 
+mkm_config_add_all_columns(
+	mkm_config*						config,
+	mkm_config_column**				last_column)
+{
+	const mkm_config_column_info* p = g_mkm_config_column_info;
+	while (p->name != NULL)
+	{
+		mkm_config_column* existing_column = mkm_config_get_column_by_name(config, p->name);
+
+		if (existing_column == NULL) 
+		{
+			mkm_config_column* column = MKM_NEW(mkm_config_column);
+
+			column->info = p;
+			column->hidden = MKM_FALSE;
+
+			if (*last_column != NULL)
+				(*last_column)->next = column;
+			else
+				config->columns = column;
+
+			*last_column = column;
+
+			config->num_columns++;
+		}
+		else
+		{
+			if (existing_column->hidden)
+				existing_column->hidden = MKM_FALSE;
+		}
+
+		p++;
+	}
 }
 
 static void
@@ -709,6 +748,10 @@ mkm_config_init(
 				option = option->next;
 				MKM_ERROR_CHECK(option != NULL, "Expected columns after --columns.");
 				mkm_config_parse_columns(config, &last_column, option->value, MKM_FALSE);
+			}
+			else if (strcmp(option->value, "--all_columns") == 0)
+			{
+				mkm_config_add_all_columns(config, &last_column);
 			}
 			else if(strcmp(option->value, "--sort") == 0)
 			{

@@ -36,7 +36,8 @@ mkm_data_set_column_string(
 {
 	data->type = MKM_DATA_COLUMN_TYPE_STRING;
 
-	mkm_strcpy(data->string_value, value, sizeof(data->string_value));
+	/* We might lose data if it's too long */
+	strncpy(data->string_value, value, sizeof(data->string_value));
 }
 
 static void

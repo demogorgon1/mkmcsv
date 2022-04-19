@@ -20,7 +20,7 @@ typedef struct _mkm_data_column
 	mkm_data_column_type		type;
 
 	/* FIXME: union */
-	char						string_value[256];
+	char						string_value[1024];
 	uint32_t					uint32_value;
 	int32_t						price_value;
 	mkm_bool					bool_value;
