@@ -113,7 +113,7 @@ static mkm_config_column_info g_mkm_config_column_info[] =
 	{ "legality_oldschool", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, MKM_CONFIG_COLUMN_DATA_TYPE_STRING, SFC_CARD_STRING_LEGALITY_OLDSCHOOL, MKM_FALSE, 0				},
 	{ "legality_premodern", MKM_CONFIG_COLUMN_TYPE_SFC_STRING, MKM_CONFIG_COLUMN_DATA_TYPE_STRING, SFC_CARD_STRING_LEGALITY_PREMODERN, MKM_FALSE, 0				},
 
-	{ NULL, 0, 0, MKM_FALSE, 0																								}
+	{ NULL, 0, 0, 0, MKM_FALSE, 0																								}
 };
 
 static void
@@ -457,10 +457,8 @@ mkm_config_parse_sets(
 
 		p[token_length] = '\0';
 
-		int32_t order = 1;
 		if (*p == '-')
 		{
-			order = -1;
 			p++;
 			token_length--;
 		}
