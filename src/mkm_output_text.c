@@ -91,7 +91,10 @@ mkm_output_text(
 	}
 
 	if(visible_column_count == 0)
+	{
+		free(columns);
 		return;
+	}
 
 	/* Output header */
 	{
