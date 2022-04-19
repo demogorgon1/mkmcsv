@@ -27,6 +27,9 @@ cmake --build .
 On Windows, if successful, you'll find ```mkmcsv.exe``` in ```src\Debug```.
 On Linux (and similar), if successful, you can run ```make install``` to install ```mkmcsv```.
 
+### Downloading binaries
+For Windows you can download the zip'd .exe file available under "Releases".
+
 ## Usage
 ### Basic CSV processing
 So, you've exported a CSV file (```ArticlesFromShipment123456..csv```) from Cardmarket and it looks something like this:
