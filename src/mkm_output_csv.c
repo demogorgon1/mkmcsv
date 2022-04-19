@@ -32,7 +32,7 @@ mkm_output_csv(
 	/* Output rows */
 	for (const mkm_data_row* row = data->first_row; row != NULL; row = row->next)
 	{
-		if (row->removed)
+		if (!mkm_data_row_should_output(data, row))
 			continue;
 
 		size_t column_index = 0;

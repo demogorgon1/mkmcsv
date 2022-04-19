@@ -9,6 +9,8 @@
 
 #define	MKM_CONFIG_VERBOSE						0x00000001
 #define MKM_CONFIG_CLOSE_OUTPUT_STREAM_ON_EXIT	0x00000002
+#define MKM_CONFIG_SET_FILTER_WHITELIST			0x00000004
+#define MKM_CONFIG_SET_FILTER_BLACKLIST			0x00000008
 
 typedef enum _mkm_config_column_type
 {
@@ -53,7 +55,7 @@ typedef struct _mkm_config_column
 
 typedef struct _mkm_config_input_file
 {
-	const char*							path;
+	char*								path;
 	struct _mkm_config_input_file*		next;
 } mkm_config_input_file;
 
@@ -72,6 +74,12 @@ typedef struct _mkm_config_sort_column
 	struct _mkm_config_sort_column*		next;
 } mkm_config_sort_column;
 
+typedef struct _mkm_config_set_filter
+{
+	char*								set;
+	struct _mkm_config_set_filter*		next;
+} mkm_config_set_filter;
+
 typedef struct _mkm_config
 {
 	uint32_t							flags;
@@ -80,6 +88,7 @@ typedef struct _mkm_config
 	mkm_config_column*					columns;
 	size_t								num_columns;
 	mkm_config_sort_column*				sort_columns;
+	mkm_config_set_filter*				set_filters;
 	mkm_config_input_callback			input_callback;
 	mkm_config_output_callback			output_callback;
 	FILE*								output_stream;

@@ -70,6 +70,9 @@ mkm_output_text(
 
 			for(const mkm_data_row* row = data->first_row; row != NULL; row = row->next)
 			{
+				if(!mkm_data_row_should_output(data, row))
+					continue;
+
 				char buffer[256];
 				mkm_output_text_render_cell(&row->columns[column_index], buffer, sizeof(buffer));
 				size_t len = strlen(buffer);
@@ -125,7 +128,7 @@ mkm_output_text(
 	/* Output rows */
 	for (const mkm_data_row* row = data->first_row; row != NULL; row = row->next)
 	{
-		if(row->removed)
+		if (!mkm_data_row_should_output(data, row))
 			continue;
 
 		struct column_info* column = columns;

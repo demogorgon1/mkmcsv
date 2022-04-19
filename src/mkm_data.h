@@ -103,4 +103,8 @@ void			mkm_data_add_row(
 					mkm_data*						data,
 					mkm_data_row*					row);
 
+mkm_bool		mkm_data_row_should_output(
+					mkm_data*						data,
+					const mkm_data_row*				row);
+
 #endif /* __MKM_DATA_H__ */

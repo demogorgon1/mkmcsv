@@ -152,6 +152,12 @@ mkm_config_help()
 		"    --output_file <path>\n"
 		"        Writes output to specified file instead of stdout.\n"
 		"\n"
+		"    --whitelist_sets <list of sets>\n"
+		"        Only include a row if the 'set' column matches one of the listed sets.\n"
+		"\n"
+		"    --blacklist_sets <list of sets>\n"
+		"        Only include a row if the 'set' column doesn't match one of the listed set.\n"
+		"\n"
 		"    --config <path>\n"
 		"        Loads options from a text file if it exists. Path defaults to\n"
 		"        '.mkmcsv/config.txt' in your home directory.\n"
@@ -339,6 +345,8 @@ mkm_config_parse_sort(
 	mkm_config*						config,
 	const char*						string)
 {
+	MKM_ERROR_CHECK(config->sort_columns == NULL, "Sorting columns specified more than once.");
+
 	char temp[1024];
 	mkm_strcpy(temp, string, sizeof(temp));
 
@@ -378,6 +386,51 @@ mkm_config_parse_sort(
 			config->sort_columns = sort_column;
 
 		last_sort_column = sort_column;
+
+		if (end_of_line)
+			break;
+
+		p += token_length + 1;
+	}
+}
+
+static void
+mkm_config_parse_sets(
+	mkm_config*		config,
+	char*			string)
+{
+	MKM_ERROR_CHECK(config->set_filters == NULL, "Set filters specified more than once.");
+
+	char* p = string;
+	mkm_config_set_filter* last_set_filter = NULL;
+
+	for (;;)
+	{
+		size_t token_length = 0;
+		while (p[token_length] != '+' && p[token_length] != '\0')
+			token_length++;
+
+		mkm_bool end_of_line = p[token_length] == '\0';
+
+		p[token_length] = '\0';
+
+		int32_t order = 1;
+		if (*p == '-')
+		{
+			order = -1;
+			p++;
+			token_length--;
+		}
+
+		mkm_config_set_filter* set_filter = MKM_NEW(mkm_config_set_filter);
+		set_filter->set = mkm_strdup(p);
+
+		if (last_set_filter != NULL)
+			last_set_filter->next = set_filter;
+		else
+			config->set_filters = set_filter;
+
+		last_set_filter = set_filter;
 
 		if (end_of_line)
 			break;
@@ -620,7 +673,23 @@ mkm_config_init(
 	{
 		if(option->value[0] == '-')
 		{
-			if(strcmp(option->value, "--output_file") == 0)
+			if (strcmp(option->value, "--whitelist_sets") == 0)
+			{
+				option = option->next;
+				MKM_ERROR_CHECK(option != NULL, "Expected set list after --whitelist_sets.");
+				MKM_ERROR_CHECK((config->flags & MKM_CONFIG_SET_FILTER_BLACKLIST) == 0, "Can't use both --whitelist_sets and --blacklist_sets.");
+				config->flags |= MKM_CONFIG_SET_FILTER_WHITELIST;
+				mkm_config_parse_sets(config, option->value);
+			}
+			else if (strcmp(option->value, "--blacklist_sets") == 0)
+			{
+				option = option->next;
+				MKM_ERROR_CHECK(option != NULL, "Expected set list after --blacklist_sets.");
+				MKM_ERROR_CHECK((config->flags & MKM_CONFIG_SET_FILTER_WHITELIST) == 0, "Can't use both --whitelist_sets and --blacklist_sets.");
+				config->flags |= MKM_CONFIG_SET_FILTER_BLACKLIST;
+				mkm_config_parse_sets(config, option->value);				
+			}
+			else if(strcmp(option->value, "--output_file") == 0)
 			{
 				option = option->next;
 				MKM_ERROR_CHECK(option != NULL, "Expected path after --output_file.");
@@ -706,7 +775,7 @@ mkm_config_init(
 			/* Add input file */
 			mkm_config_input_file* input_file = MKM_NEW(mkm_config_input_file);
 
-			input_file->path = option->value;
+			input_file->path = mkm_strdup(option->value);
 
 			if(last_input_file != NULL)
 				last_input_file->next = input_file;
@@ -755,6 +824,7 @@ mkm_config_uninit(
 		while(input_file != NULL)
 		{
 			mkm_config_input_file* next = input_file->next;
+			free(input_file->path);
 			free(input_file);
 			input_file = next;
 		}
@@ -779,6 +849,18 @@ mkm_config_uninit(
 			mkm_config_sort_column* next = column->next;
 			free(column);
 			column = next;
+		}
+	}
+
+	/* Free set filters */
+	{
+		mkm_config_set_filter* set_filter = config->set_filters;
+		while (set_filter != NULL)
+		{
+			mkm_config_set_filter* next = set_filter->next;
+			free(set_filter->set);
+			free(set_filter);
+			set_filter = next;
 		}
 	}
 }

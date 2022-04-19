@@ -537,3 +537,42 @@ mkm_data_add_row(
 	/* Insert in binary search tree */
 	mkm_data_add_row_to_binary_search_tree(data, row);
 }
+
+mkm_bool		
+mkm_data_row_should_output(
+	mkm_data*					data,
+	const mkm_data_row*			row)
+{
+	if(row->removed)
+		return MKM_FALSE;
+
+	if(data->config->set_filters != NULL)
+	{
+		uint32_t column_index = mkm_config_get_column_index_by_name(data->config, "set");
+		MKM_ERROR_CHECK(column_index != UINT32_MAX, "'set' column required to filter by set.");
+
+		const mkm_data_column* column = &row->columns[column_index];
+		assert(column->type == MKM_DATA_COLUMN_TYPE_STRING);
+
+		for (const mkm_config_set_filter* set_filter = data->config->set_filters; set_filter != NULL; set_filter = set_filter->next)
+		{
+			if (strcmp(set_filter->set, column->string_value) == 0)
+			{
+				if (data->config->flags & MKM_CONFIG_SET_FILTER_WHITELIST)
+					return MKM_TRUE;
+				else if (data->config->flags & MKM_CONFIG_SET_FILTER_BLACKLIST)
+					return MKM_FALSE;
+				else
+					assert(0);
+			}
+		}
+
+		if (data->config->flags & MKM_CONFIG_SET_FILTER_WHITELIST)
+		{
+			/* None of the sets in the whitelist matched */
+			return MKM_FALSE;
+		}
+	}
+
+	return MKM_TRUE;
+}
