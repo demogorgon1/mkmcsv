@@ -122,3 +122,23 @@ name = EXCLUDED.name,
 price = EXCLUDED.price;
 ```
 This will create the table if it doesn't exist and try to insert the rows. If a row with ```unique_id``` already exists its values will be updated.
+
+### Managing non-Cardmarket purchases
+If you bought some cards on ebay (or wherever) you can easily add them to your shipment lists as well, you just need to come up with your own purchase ids that don't match any CSV files you exported from Cardmarket. Any numbers less than 10000'ish should be safe to use. As an example, consider the following shipment list file:
+```
+shipment 1 20220101 1.00 0.50
+add 3ed 200 EX 2
+```
+The ```add``` statement adds 200th (collector's number) card from the set ```3ed``` (Revised Edition) in EX condition to the shipment with a price of 2.00. You can use the [Scryfall website](https://scryfall.com/) to look up collector's numbers and set codes.
+
+### Modifying shipments
+The ```add``` statement can also be used to add extra cards that were received in a shipment through Cardmarket. Missing cards can be removed with the ```remove``` statement:
+```
+remove 3ed 200 EX
+```
+This will find a card, same princible as with ```add```, but will remove it from the shipment. 
+If a seller has offered a refund for something, but you're not sure what it was, you can use the ```adjust``` statement:
+```
+adjust -1.00
+```
+This will decrease the total overall price of the shipment by 1.00. An amount is deducted from each card in the shipment based on their contribution to the total cost. Any rounding error is deducted from the most expensive card.
