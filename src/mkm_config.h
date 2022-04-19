@@ -38,10 +38,19 @@ typedef enum _mkm_config_column_type
 	MKM_CONFIG_COLUMN_TYPE_SFC_STRING
 } mkm_config_column_type;
 
+typedef enum _mkm_config_column_data_type
+{
+	MKM_CONFIG_COLUMN_DATA_TYPE_UINT32,
+	MKM_CONFIG_COLUMN_DATA_TYPE_PRICE,
+	MKM_CONFIG_COLUMN_DATA_TYPE_BOOL,
+	MKM_CONFIG_COLUMN_DATA_TYPE_STRING
+} mkm_config_column_data_type;
+
 typedef struct _mkm_config_column_info
 {
 	const char*							name;
 	mkm_config_column_type				type;
+	mkm_config_column_data_type			data_type;
 	sfc_card_string						card_string;
 	mkm_bool							card_string_is_price;
 	uint8_t								csv_column;
@@ -93,6 +102,9 @@ typedef struct _mkm_config
 	mkm_config_input_callback			input_callback;
 	mkm_config_output_callback			output_callback;
 	FILE*								output_stream;
+
+	/* SQL options */
+	char								sql_table[256];
 } mkm_config;
 
 void		mkm_config_init(

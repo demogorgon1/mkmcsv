@@ -5,6 +5,7 @@
 #include "mkm_config.h"
 #include "mkm_error.h"
 #include "mkm_data.h"
+#include "mkm_output_sql.h"
 
 #include "test.h"
 
