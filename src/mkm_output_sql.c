@@ -37,7 +37,7 @@ mkm_output_sql_string(
 	{
 		char c = *p;
 
-		if(c != '\'' && c != '\"' && c >= 32 && c < 128)
+		if(c != '\'' && c != '\"' && c >= 32)
 			fputc(c, output_stream);
 
 		p++;
