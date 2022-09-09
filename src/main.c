@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <locale.h>
 
 #include <sfc/sfc.h>
 
@@ -14,6 +15,8 @@ main(
 	int			argc, 
 	char**		argv)
 {
+	setlocale(LC_ALL, "");
+
 	#if defined(MKM_TEST)
 		if(argc > 1 && strcmp(argv[1], "test") == 0)
 			return test(argc, argv);

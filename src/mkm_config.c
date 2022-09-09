@@ -9,6 +9,8 @@
 	#include <pwd.h>
 #endif
 
+#include <locale.h>
+
 #include <malloc.h>
 #include <stdlib.h>
 #include <string.h>
@@ -164,6 +166,9 @@ mkm_config_help()
 		"\n"
 		"    --blacklist_sets <list of sets>\n"
 		"        Only include a row if the 'set' column doesn't match one of the listed set.\n"
+		"\n"
+		"    --locale <locale>\n"
+		"        System specific locale identifier. For example 'en_US'.\n"
 		"\n"
 		"    --config <path>\n"
 		"        Loads options from a text file if it exists. Path defaults to\n"
@@ -703,7 +708,6 @@ mkm_config_init(
 
 	config->output_stream = stdout;
 
-
 	mkm_config_option_list option_list;
 	mkm_config_option_list_init(&option_list, argc, argv);
 
@@ -715,7 +719,13 @@ mkm_config_init(
 	{
 		if(option->value[0] == '-')
 		{
-			if (strcmp(option->value, "--whitelist_sets") == 0)
+			if (strcmp(option->value, "--locale") == 0)
+			{
+				option = option->next;
+				char* result = setlocale(LC_ALL, option->value);
+				MKM_ERROR_CHECK(result != NULL, "setlocale() failed.");
+			}
+			else if (strcmp(option->value, "--whitelist_sets") == 0)
 			{
 				option = option->next;
 				MKM_ERROR_CHECK(option != NULL, "Expected set list after --whitelist_sets.");

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <locale.h>
 
 #include "mkm_base.h"
 #include "mkm_config.h"
@@ -22,7 +23,8 @@ mkm_output_text_render_cell(
 		{
 			int32_t minor = column->price_value < 0 ? (-column->price_value % 100) : (column->price_value % 100);
 			int32_t major = column->price_value / 100;
-			snprintf(buffer, buffer_size, "%d.%02d", major, minor);
+			const struct lconv* l = localeconv();
+			snprintf(buffer, buffer_size, "%d%s%02d", major, l->decimal_point, minor);
 		}
 		break;
 

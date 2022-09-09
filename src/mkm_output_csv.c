@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <locale.h>
 
 #include "mkm_base.h"
 #include "mkm_config.h"
@@ -50,9 +51,19 @@ mkm_output_csv(
 				{
 				case MKM_DATA_COLUMN_TYPE_STRING:	fprintf(data->config->output_stream, "%s", column->string_value); break;
 				case MKM_DATA_COLUMN_TYPE_UINT32:	fprintf(data->config->output_stream, "%u", column->uint32_value); break;
-				case MKM_DATA_COLUMN_TYPE_PRICE:	fprintf(data->config->output_stream, "%d", column->price_value); break;
 				case MKM_DATA_COLUMN_TYPE_BOOL:		fprintf(data->config->output_stream, "%u", column->bool_value ? 1 : 0); break;
-				default:							assert(0);
+
+				case MKM_DATA_COLUMN_TYPE_PRICE:	
+					{
+						int32_t minor = column->price_value < 0 ? (-column->price_value % 100) : (column->price_value % 100);
+						int32_t major = column->price_value / 100;
+						const struct lconv* l = localeconv();
+						fprintf(data->config->output_stream, "%d%s%02d", major, l->decimal_point, minor);
+					}
+					break;
+
+				default:							
+					assert(0);
 				}
 			}
 
