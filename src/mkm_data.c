@@ -356,6 +356,11 @@ mkm_data_process_column(
 		mkm_data_set_column_string(data, mkm_condition_to_string(csv_row->columns[MKM_CSV_COLUMN_CONDITION]));
 		break;
 
+	case MKM_CONFIG_COLUMN_TYPE_CONDITION_STRING_US:
+		MKM_ERROR_CHECK(mkm_csv_row_has_column(csv_row, MKM_CSV_COLUMN_CONDITION), "No condition information available.");
+		mkm_data_set_column_string(data, mkm_condition_to_string_us(csv_row->columns[MKM_CSV_COLUMN_CONDITION]));
+		break;
+
 	case MKM_CONFIG_COLUMN_TYPE_SHIPMENT_PURCHASE_ID:
 		MKM_ERROR_CHECK(shipment_info != NULL, "No shipment information available.");
 		mkm_data_set_column_uint32(data, shipment_info->id);
