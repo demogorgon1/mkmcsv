@@ -2,6 +2,7 @@
 
 #include <sfc/sfc.h>
 
+#include "mkm_condition.h"
 #include "mkm_config.h"
 #include "mkm_csv.h"
 #include "mkm_data.h"
@@ -348,6 +349,11 @@ mkm_data_process_column(
 			mkm_data_set_column_price(data, (int32_t)csv_row->columns[config->info->csv_column]);
 		else
 			mkm_data_set_column_uint32(data, csv_row->columns[config->info->csv_column]);
+		break;
+
+	case MKM_CONFIG_COLUMN_TYPE_CONDITION_STRING:
+		MKM_ERROR_CHECK(mkm_csv_row_has_column(csv_row, MKM_CSV_COLUMN_CONDITION), "No condition information available.");
+		mkm_data_set_column_string(data, mkm_condition_to_string(csv_row->columns[MKM_CSV_COLUMN_CONDITION]));
 		break;
 
 	case MKM_CONFIG_COLUMN_TYPE_SHIPMENT_PURCHASE_ID:

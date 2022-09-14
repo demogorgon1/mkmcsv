@@ -4,45 +4,13 @@
 
 #include <sfc/sfc_collector_number.h>
 
+#include "mkm_condition.h"
 #include "mkm_csv.h"
 #include "mkm_error.h"
 #include "mkm_price.h"
 #include "mkm_shipment.h"
 #include "mkm_shipment_list.h"
 #include "mkm_tokenize.h"
-
-static uint32_t
-mkm_shipment_list_parse_condition_string(
-	const char*			string)
-{
-	size_t len = strlen(string);
-	
-	if(len == 2)
-	{
-		char lc_string[3];
-		lc_string[0] = (char)tolower(string[0]);
-		lc_string[1] = (char)tolower(string[1]);
-		lc_string[2] = '\0';
-
-		if(strcmp(lc_string, "po") == 0)
-			return 7;
-		if (strcmp(lc_string, "pl") == 0)
-			return 6;
-		if (strcmp(lc_string, "lp") == 0)
-			return 5;
-		if (strcmp(lc_string, "gd") == 0)
-			return 4;
-		if (strcmp(lc_string, "ex") == 0)
-			return 3;
-		if (strcmp(lc_string, "nm") == 0)
-			return 2;
-		if (strcmp(lc_string, "mt") == 0)
-			return 1;
-	}
-
-	mkm_error("Invalid condition string: %s", string);
-	return 0;
-}
 
 static void
 mkm_shipment_list_make_card_key(
@@ -258,7 +226,7 @@ mkm_shipment_list_create_from_file(
 					mkm_shipment_remove(
 						shipment, 
 						&key, 
-						mkm_shipment_list_parse_condition_string(tokenize.tokens[3]),
+						mkm_condition_from_string(tokenize.tokens[3]),
 						UINT32_MAX);
 				}
 				else if(strcmp(first_token, "add") == 0)
@@ -272,7 +240,7 @@ mkm_shipment_list_create_from_file(
 					mkm_shipment_add(
 						shipment, 
 						&key, 
-						mkm_shipment_list_parse_condition_string(tokenize.tokens[3]),
+						mkm_condition_from_string(tokenize.tokens[3]),
 						mkm_price_parse(tokenize.tokens[4]));
 				}
 				else

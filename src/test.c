@@ -1,5 +1,6 @@
 #ifdef MKM_TEST
 
+#include <locale.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -244,6 +245,8 @@ test(
 {
 	MKM_UNUSED(argc);
 	MKM_UNUSED(argv);
+
+	setlocale(LC_ALL, "C");
 
 	test_csv_in_text_out();
 
