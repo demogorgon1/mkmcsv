@@ -67,6 +67,8 @@ test_compare_file(
 	fclose(f);
 
 	TEST_ASSERT(strcmp(p, text) == 0);
+
+	free(p);
 }
 
 typedef struct _test_http_context
