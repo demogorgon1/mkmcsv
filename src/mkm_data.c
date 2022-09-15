@@ -351,6 +351,25 @@ mkm_data_process_column(
 			mkm_data_set_column_uint32(data, csv_row->columns[config->info->csv_column]);
 		break;
 
+	case MKM_CONFIG_COLUMN_TYPE_CSV_LANGUAGE_STRING:
+		MKM_ERROR_CHECK(mkm_csv_row_has_column(csv_row, MKM_CSV_COLUMN_ID_LANGUAGE), "No language information available.");
+		switch(csv_row->columns[MKM_CSV_COLUMN_ID_LANGUAGE])
+		{
+		case 1:		mkm_data_set_column_string(data, "en"); break;
+		case 2:		mkm_data_set_column_string(data, "fr"); break;
+		case 3:		mkm_data_set_column_string(data, "de"); break;
+		case 4:		mkm_data_set_column_string(data, "es"); break;
+		case 5:		mkm_data_set_column_string(data, "it"); break;
+		case 6:		mkm_data_set_column_string(data, "zhs"); break;
+		case 7:		mkm_data_set_column_string(data, "jp"); break;
+		case 8:		mkm_data_set_column_string(data, "pt"); break;
+		case 9:		mkm_data_set_column_string(data, "ru"); break;
+		case 10:	mkm_data_set_column_string(data, "kr"); break;
+		case 11:	mkm_data_set_column_string(data, "zht"); break;
+		default:	mkm_error("Unknown language id: %u", csv_row->columns[MKM_CSV_COLUMN_ID_LANGUAGE]);
+		}
+		break;
+
 	case MKM_CONFIG_COLUMN_TYPE_CONDITION_STRING:
 		MKM_ERROR_CHECK(mkm_csv_row_has_column(csv_row, MKM_CSV_COLUMN_CONDITION), "No condition information available.");
 		mkm_data_set_column_string(data, mkm_condition_to_string(csv_row->columns[MKM_CSV_COLUMN_CONDITION]));
