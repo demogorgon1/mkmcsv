@@ -7,7 +7,7 @@ Several output modes are supported:
 
 - CSV: Similar to the input files exported from Cardmarket, but with whatever additional columns you desire.
 - Text: An easy-to-read text table.
-- SQL: You can feed this directly into the SQL database you're using to manage your Magic cards. 
+- SQL: You can feed this directly into the PostgreSQL database you're using to manage your Magic cards. 
 
 In addition to processing CSV files, mkmcsv can also read higher level shipment lists written by you to provide more information about your purchases, like shipping costs, trustee fees, and refunds. You can also use shipment lists to describe purchases from outside Cardmarket. The goal is to make the process of managing your new purchases as easy and steamlined as possible.
 
@@ -97,7 +97,7 @@ If desired, you can sort the output with ```--sort``` followed by a ```+```-sepa
 For more information about statements availabe you can use in shipment lists run ```mkmcsv --help shipments```.
 
 ### SQL
-With ```--output sql``` you can convert your shipment lists into a bunch of SQL statements that can be used to update a postgres database. Use the ```--sql_table``` option to specify the name of the database table. The ```unique_id``` column (shipment id and CSV row number) will be added automatically as it is required as primary key in the table.. Run ```mkmcsv shipments.txt --input shipments --output sql --columns name+price```:
+With ```--output sql``` you can convert your shipment lists into a bunch of SQL statements that can be used to update a PostgreSQL database. Use the ```--sql_table``` option to specify the name of the database table. The ```unique_id``` column (shipment id and CSV row number) will be added automatically as it is required as primary key in the table.. Run ```mkmcsv shipments.txt --input shipments --output sql --columns name+price```:
 ```
 CREATE TABLE IF NOT EXISTS cards (
 unique_id VARCHAR(64) PRIMARY KEY,
