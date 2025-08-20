@@ -24,7 +24,7 @@ mkm_csv_read_line(
 {
 	memset(line, 0, sizeof(mkm_csv_line));
 
-	char* p = fgets(line->string, sizeof(mkm_csv_line) - 1, f);
+	char* p = fgets(line->string, sizeof(line->string) - 1, f);
 	if(p == NULL)
 		return MKM_FALSE;
 
